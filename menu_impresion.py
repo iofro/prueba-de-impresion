@@ -98,16 +98,23 @@ def eliminar_fuente(font):
             pass
 
 def configurar_mapeo(dc):
-    """Configura el mapeo para que 16.6 cm x 27.5 cm coincidan con el área imprimible."""
+    """Configura el mapeo del DC para coincidir con el tamaño de la factura.
+
+    Se asume un papel de 16.6 × 27.5 cm. Los desplazamientos (`PHYSICALOFFSETX`,
+    `PHYSICALOFFSETY`) se leen de la impresora y pueden variar entre modelos.
+    """
     if not win32con:
         return
     dc.SetMapMode(win32con.MM_TWIPS)
     ancho = dc.GetDeviceCaps(win32con.HORZRES)
     alto = dc.GetDeviceCaps(win32con.VERTRES)
+    offset_x = dc.GetDeviceCaps(win32con.PHYSICALOFFSETX)
+    offset_y = dc.GetDeviceCaps(win32con.PHYSICALOFFSETY)
     # PyCDC no expone los métodos *Ex, por lo que utilizamos las variantes
     # simples que aceptan una tupla como parámetro.
     dc.SetWindowExt((cm_a_twips(16.6), cm_a_twips(27.5)))
     dc.SetViewportExt((ancho, -alto))
+    dc.SetViewportOrg((-offset_x, offset_y))
 
 
 def activar_modo_slip(printer_name: str) -> bool:
