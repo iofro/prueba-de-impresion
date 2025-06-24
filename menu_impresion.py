@@ -29,6 +29,46 @@ def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
     return round(valor_cm * 566.93)
 
+# Coordenadas est\u00e1ticas para la factura (en cent\u00edmetros)
+HEADER_COORDS = {
+    "cliente": (4.45, 4.80),
+    "direccion": (4.45, 5.40),
+    "fecha": (3.81, 6.40),
+    "giro": (3.81, 6.90),
+    "fecha_remision": (3.81, 7.50),
+    "condicion_pago": (4.45, 8.00),
+    "vendedor": (4.45, 8.50),
+    "nrc": (7.62, 6.40),
+    "no_rem": (7.62, 7.50),
+    "nit": (11.43, 6.40),
+    "orden_no": (12.07, 7.50),
+    "venta_cuenta_de": (11.43, 8.00),
+    "fecha_nota_ant": (11.75, 8.50),
+}
+
+PRODUCT_HEADER = {
+    "cantidad": (2.22, 10.10),
+    "descripcion": (3.90, 10.10),
+    "precio_unitario": (9.21, 10.10),
+    "ventas_exentas": (11.11, 10.10),
+    "ventas_no_sujetas": (12.70, 10.10),
+    "ventas_gravadas": (14.10, 10.10),
+}
+
+TOTALS_COORDS = {
+    "literal": (2.22, 22.23),
+    "sumas": (14.10, 21.59),
+    "iva": (14.10, 22.23),
+    "subtotal": (14.10, 22.86),
+    "iva_retenido": (14.10, 23.45),
+    "no_sujetas": (14.10, 24.00),
+    "ventas_exentas": (14.10, 24.60),
+    "total": (14.10, 25.08),
+}
+
+PRODUCT_ROW_START_Y = 10.70
+ROW_HEIGHT = 0.6
+
 
 def seleccionar_fuente(dc, puntos=12, nombre=DEFAULT_FONT_NAME):
     """Crea y selecciona en el DC una fuente *nombre* de *puntos* puntos.
@@ -58,7 +98,7 @@ def eliminar_fuente(font):
             pass
 
 def configurar_mapeo(dc):
-    """Configura el mapeo para que 27.5 cm x 16.6 cm coincidan con el área imprimible."""
+    """Configura el mapeo para que 16.6 cm x 27.5 cm coincidan con el área imprimible."""
     if not win32con:
         return
     dc.SetMapMode(win32con.MM_TWIPS)
@@ -66,7 +106,7 @@ def configurar_mapeo(dc):
     alto = dc.GetDeviceCaps(win32con.VERTRES)
     # PyCDC no expone los métodos *Ex, por lo que utilizamos las variantes
     # simples que aceptan una tupla como parámetro.
-    dc.SetWindowExt((cm_a_twips(27.5), cm_a_twips(16.6)))
+    dc.SetWindowExt((cm_a_twips(16.6), cm_a_twips(27.5)))
     dc.SetViewportExt((ancho, -alto))
 
 
@@ -109,15 +149,15 @@ def generar_factura_datos():
         "direccion": "Col. Escal\u00f3n, San Salvador",
         "fecha": "2025-06-12",
         "giro": "Comercio",
-        "vence": "2025-06-10",
-        "pago": "30 D\u00cdAS",
-        "atencion": "Mar\u00eda P\u00e9rez",
+        "fecha_remision": "2025-06-10",
+        "condicion_pago": "30 D\u00cdAS",
+        "vendedor": "Mar\u00eda P\u00e9rez",
         "nrc": "123456-7",
-        "remision": "REM-00123",
+        "no_rem": "REM-00123",
         "nit": "0614-250786-102-3",
-        "orden": "ORD-789",
-        "proveedor": "Distribuidora S.A.",
-        "fecha_doc": "2025-05-30",
+        "orden_no": "ORD-789",
+        "venta_cuenta_de": "Distribuidora S.A.",
+        "fecha_nota_ant": "2025-05-30",
     }
 
     productos = [
@@ -167,82 +207,30 @@ def imprimir_factura_win32ui(printer_name):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
         # Encabezado (solo datos)
-        header_pos = [
-            (4.45, 4.80),
-            (4.45, 5.40),
-            (3.81, 6.40),
-            (3.81, 6.90),
-            (3.81, 7.50),
-            (4.45, 8.00),
-            (4.45, 8.50),
-            (7.62, 6.40),
-            (7.62, 7.50),
-            (11.43, 6.40),
-            (12.07, 7.50),
-            (11.43, 8.00),
-            (11.75, 8.50),
-        ]
-        header_vals = [
-            encabezado["cliente"],
-            encabezado["direccion"],
-            encabezado["fecha"],
-            encabezado["giro"],
-            encabezado["vence"],
-            encabezado["pago"],
-            encabezado["atencion"],
-            encabezado["nrc"],
-            encabezado["remision"],
-            encabezado["nit"],
-            encabezado["orden"],
-            encabezado["proveedor"],
-            encabezado["fecha_doc"],
-        ]
-        for (x, y), text in zip(header_pos, header_vals):
-            draw(x, y, text)
+        for campo, (x, y) in HEADER_COORDS.items():
+            draw(x, y, encabezado.get(campo, ""))
 
         # Encabezado de la tabla de productos
-        draw(2.22, 10.10, "Cantidad")
-        draw(3.90, 10.10, "Descripción")
-        draw(9.21, 10.10, "Precio unitario")
-        draw(11.11, 10.10, "Ventas exentas")
-        draw(12.70, 10.10, "Ventas no sujetas")
-        draw(14.10, 10.10, "Ventas gravadas")
+        draw(PRODUCT_HEADER["cantidad"][0], PRODUCT_HEADER["cantidad"][1], "Cantidad")
+        draw(PRODUCT_HEADER["descripcion"][0], PRODUCT_HEADER["descripcion"][1], "Descripción")
+        draw(PRODUCT_HEADER["precio_unitario"][0], PRODUCT_HEADER["precio_unitario"][1], "Precio unitario")
+        draw(PRODUCT_HEADER["ventas_exentas"][0], PRODUCT_HEADER["ventas_exentas"][1], "Ventas exentas")
+        draw(PRODUCT_HEADER["ventas_no_sujetas"][0], PRODUCT_HEADER["ventas_no_sujetas"][1], "Ventas no sujetas")
+        draw(PRODUCT_HEADER["ventas_gravadas"][0], PRODUCT_HEADER["ventas_gravadas"][1], "Ventas gravadas")
 
         # Productos
-        y_base = 10.70
-        row_height = 0.6
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
-            y = y_base + i * row_height
-            draw(2.22, y, cant)
-            draw(3.90, y, desc)
-            draw(9.21, y, prec)
-            draw(11.11, y, ex)
-            draw(12.70, y, ns)
-            draw(14.10, y, grav)
+            y = PRODUCT_ROW_START_Y + i * ROW_HEIGHT
+            draw(PRODUCT_HEADER["cantidad"][0], y, cant)
+            draw(PRODUCT_HEADER["descripcion"][0], y, desc)
+            draw(PRODUCT_HEADER["precio_unitario"][0], y, prec)
+            draw(PRODUCT_HEADER["ventas_exentas"][0], y, ex)
+            draw(PRODUCT_HEADER["ventas_no_sujetas"][0], y, ns)
+            draw(PRODUCT_HEADER["ventas_gravadas"][0], y, grav)
 
         # Totales
-        totals_pos = [
-            (2.22, 22.23),
-            (14.10, 21.59),
-            (14.10, 22.23),
-            (14.10, 22.86),
-            (14.10, 23.45),
-            (14.10, 24.00),
-            (14.10, 24.60),
-            (14.10, 25.08),
-        ]
-        totals_vals = [
-            totales["literal"],
-            totales["sumas"],
-            totales["iva"],
-            totales["subtotal"],
-            totales["iva_retenido"],
-            totales["no_sujetas"],
-            totales["ventas_exentas"],
-            totales["total"],
-        ]
-        for (x, y), text in zip(totals_pos, totals_vals):
-            draw(x, y, text)
+        for campo, (x, y) in TOTALS_COORDS.items():
+            draw(x, y, totales.get(campo, ""))
 
         if old_font:
             dc.SelectObject(old_font)
@@ -289,19 +277,19 @@ def imprimir_factura_win32ui_espacios(printer_name):
             "direccion",
             "fecha",
             "giro",
-            "vence",
-            "pago",
-            "atencion",
+            "fecha_remision",
+            "condicion_pago",
+            "vendedor",
             "nrc",
-            "remision",
+            "no_rem",
             "nit",
-            "orden",
-            "proveedor",
-            "fecha_doc",
+            "orden_no",
+            "venta_cuenta_de",
+            "fecha_nota_ant",
         ]
 
 
-        lines = [encabezado[campo] for campo in header_order]
+        lines = [encabezado.get(campo, "") for campo in header_order]
         lines.append("")
         lines.append("Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
         for cant, desc, prec, ex, ns, grav in productos:
@@ -320,7 +308,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
         y = 4.8
         line_height = 0.6
         for campo in header_order:
-            draw(0, y, encabezado[campo])
+            draw(0, y, encabezado.get(campo, ""))
             y += line_height
 
 
@@ -395,19 +383,19 @@ def imprimir_factura_win32ui_tabs(printer_name):
             "direccion",
             "fecha",
             "giro",
-            "vence",
-            "pago",
-            "atencion",
+            "fecha_remision",
+            "condicion_pago",
+            "vendedor",
             "nrc",
-            "remision",
+            "no_rem",
             "nit",
-            "orden",
-            "proveedor",
-            "fecha_doc",
+            "orden_no",
+            "venta_cuenta_de",
+            "fecha_nota_ant",
         ]
 
 
-        lines = [encabezado[campo] for campo in header_order]
+        lines = [encabezado.get(campo, "") for campo in header_order]
         lines.append("")
         lines.append("Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
         for cant, desc, prec, ex, ns, grav in productos:
@@ -425,7 +413,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
         y = 4.8
         line_height = 0.6
         for campo in header_order:
-            draw(0, y, encabezado[campo])
+            draw(0, y, encabezado.get(campo, ""))
             y += line_height
 
 
@@ -499,18 +487,18 @@ def imprimir_factura_win32ui_crlf(printer_name):
             "direccion",
             "fecha",
             "giro",
-            "vence",
-            "pago",
-            "atencion",
+            "fecha_remision",
+            "condicion_pago",
+            "vendedor",
             "nrc",
-            "remision",
+            "no_rem",
             "nit",
-            "orden",
-            "proveedor",
-            "fecha_doc",
+            "orden_no",
+            "venta_cuenta_de",
+            "fecha_nota_ant",
         ]
 
-        lines = [encabezado[campo] for campo in header_order]
+        lines = [encabezado.get(campo, "") for campo in header_order]
         lines.append("")
         lines.append("Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
         for cant, desc, prec, ex, ns, grav in productos:
@@ -528,7 +516,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
         y = 4.8
         line_height = 0.6
         for campo in header_order:
-            draw(0, y, encabezado[campo])
+            draw(0, y, encabezado.get(campo, ""))
             y += line_height
 
 
