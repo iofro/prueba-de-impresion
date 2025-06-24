@@ -1,3 +1,5 @@
+import os
+import tempfile
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -6,6 +8,25 @@ try:
     import win32print
 except ImportError:
     win32print = None
+try:
+    import win32con
+except ImportError:
+    win32con = None
+try:
+    import win32ui
+except ImportError:
+    win32ui = None
+
+try:
+    from escpos.printer import Serial
+except Exception:
+    Serial = None
+
+try:
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.pdfgen import canvas
+except Exception:
+    canvas = None
 
 def coordenada_a_texto_raw(prev_y_cm, x_cm, y_cm, texto, ancho_char_cm=0.25, alto_linea_cm=0.40):
     """Convierte coordenadas en centimetros a texto usando saltos de linea.
@@ -175,6 +196,78 @@ def imprimir_factura_raw_crlf(printer_name):
     except Exception as e:
         messagebox.showerror("Error de impresión", str(e))
 
+def imprimir_factura_win32ui(printer_name):
+    """Imprime usando win32ui para enviar texto a coordenadas absolutas."""
+    if win32print is None or win32ui is None:
+        messagebox.showerror(
+            "Error",
+            "win32print/win32ui no están disponibles. Instala pywin32 en Windows.",
+        )
+        return
+    try:
+        hprinter = win32print.OpenPrinter(printer_name)
+        dc = win32ui.CreateDC()
+        dc.CreatePrinterDC(printer_name)
+        if win32con:
+            dc.SetMapMode(win32con.MM_TWIPS)
+        dc.StartDoc("Factura win32ui")
+        dc.StartPage()
+        dc.TextOut(1000, -700, "Factura de prueba")
+        dc.TextOut(1000, -1000, "Artículo 1     1.00")
+        dc.EndPage()
+        dc.EndDoc()
+        dc.DeleteDC()
+        win32print.ClosePrinter(hprinter)
+        messagebox.showinfo("Éxito", "Factura enviada a la impresora.")
+    except Exception as e:
+        messagebox.showerror("Error de impresión", str(e))
+
+def imprimir_factura_os_startfile(printer_name):
+    """Genera un txt temporal y lo imprime con os.startfile."""
+    factura = (
+        "Factura de prueba\n"
+        "Artículo 1\t1.00\n"
+        "Artículo 2\t2.00\n"
+    )
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".txt", mode="w", encoding="utf-8") as tmp:
+        tmp.write(factura)
+    try:
+        os.startfile(tmp.name, "print")
+        messagebox.showinfo("Éxito", "Factura enviada a la impresora predeterminada.")
+    except Exception as e:
+        messagebox.showerror("Error de impresión", str(e))
+
+def imprimir_factura_pdf(printer_name):
+    """Genera un PDF con reportlab y lo imprime."""
+    if canvas is None:
+        messagebox.showerror("Error", "reportlab no está instalado.")
+        return
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    c = canvas.Canvas(tmp.name, pagesize=LETTER)
+    c.drawString(72, 720, "Factura de prueba")
+    c.drawString(72, 700, "Artículo 1 - 1.00")
+    c.showPage()
+    c.save()
+    try:
+        os.startfile(tmp.name, "print")
+        messagebox.showinfo("Éxito", "PDF enviado a la impresora.")
+    except Exception as e:
+        messagebox.showerror("Error de impresión", str(e))
+
+def imprimir_factura_escpos(printer_name):
+    """Imprime usando comandos ESC/POS si el driver está disponible."""
+    if Serial is None:
+        messagebox.showerror("Error", "Librería escpos no disponible.")
+        return
+    try:
+        p = Serial()  # Configuración por defecto /dev/ttyS0
+        p.text("Factura de prueba\n")
+        p.text("Articulo 1\t1.00\n")
+        p.cut()
+        messagebox.showinfo("Éxito", "Factura enviada por ESC/POS.")
+    except Exception as e:
+        messagebox.showerror("Error de impresión", str(e))
+
 def vista_previa_factura():
     """Muestra una ventana con el texto de la factura generada (RAW coordenadas)."""
     factura_raw = ""
@@ -263,6 +356,14 @@ def imprimir_segun_metodo():
         imprimir_factura_raw_tabs(printer_name)
     elif metodo == "RAW con CRLF (\r\n)":
         imprimir_factura_raw_crlf(printer_name)
+    elif metodo == "win32ui (coordenadas absolutas)":
+        imprimir_factura_win32ui(printer_name)
+    elif metodo == "os.startfile (predeterminado)":
+        imprimir_factura_os_startfile(printer_name)
+    elif metodo == "ReportLab a PDF":
+        imprimir_factura_pdf(printer_name)
+    elif metodo == "ESC/POS":
+        imprimir_factura_escpos(printer_name)
     elif metodo == "Vista previa (solo mostrar)":
         vista_previa_factura()
     else:
@@ -286,6 +387,10 @@ if __name__ == "__main__":
         "RAW con CRLF (\\r\\n)",
         "RAW con tabulaciones (\\t)",
         "RAW simple (alineado por espacios)",
+        "win32ui (coordenadas absolutas)",
+        "os.startfile (predeterminado)",
+        "ReportLab a PDF",
+        "ESC/POS",
         "Vista previa (solo mostrar)"
     ]
     metodo_menu = ttk.Combobox(frame, textvariable=metodo_var, values=metodos, state="readonly")
