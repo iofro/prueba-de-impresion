@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-DEFAULT_FONT_NAME = "Dot Matrix"
-
 # Intenta importar win32print, si no está disponible muestra un error al intentar imprimir
 try:
     import win32print
@@ -28,18 +26,11 @@ def cm_a_twips(valor_cm: float) -> int:
     return round(valor_cm * 566.93)
 
 
-def seleccionar_fuente(dc, puntos=12, nombre=DEFAULT_FONT_NAME):
-    """Crea y selecciona en el DC una fuente *nombre* de *puntos* puntos.
-
-    Si la fuente no está disponible se utilizará ``Courier New`` como
-    alternativa.
-    """
+def seleccionar_fuente(dc, puntos=12):
+    """Crea y selecciona en el DC una fuente de *puntos* puntos."""
     if win32ui is None:
         return None, None
-    try:
-        font = win32ui.CreateFont({"name": nombre, "height": -puntos * 20})
-    except Exception:
-        font = win32ui.CreateFont({"name": "Courier New", "height": -puntos * 20})
+    font = win32ui.CreateFont({"name": "Arial", "height": -puntos * 20})
     old = dc.SelectObject(font)
     return font, old
 
@@ -50,11 +41,9 @@ def configurar_mapeo(dc):
     dc.SetMapMode(win32con.MM_TWIPS)
     ancho = dc.GetDeviceCaps(win32con.HORZRES)
     alto = dc.GetDeviceCaps(win32con.VERTRES)
-    # Alinear el origen lógico con la esquina superior izquierda
-    dc.SetWindowOrg((0, 0))
-    # El parámetro de ancho es 16.6 cm y el alto 27.5 cm
-    dc.SetWindowExt((cm_a_twips(16.6), cm_a_twips(27.5)))
-    dc.SetViewportOrg((0, alto))
+    # PyCDC no expone los métodos *Ex, por lo que utilizamos las variantes
+    # simples que aceptan una tupla como parámetro.
+    dc.SetWindowExt((cm_a_twips(27.5), cm_a_twips(16.6)))
     dc.SetViewportExt((ancho, -alto))
 
 
@@ -152,7 +141,7 @@ def imprimir_factura_win32ui(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), cm_a_twips(y_cm), texto)
+            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
         # Encabezado (solo datos)
         header_pos = [
@@ -234,9 +223,8 @@ def imprimir_factura_win32ui(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        delete_font = getattr(font, "DeleteObject", None)
-        if callable(delete_font):
-            delete_font()
+        if font:
+            font.DeleteObject()
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -271,7 +259,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), cm_a_twips(y_cm), texto)
+            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
         header_order = [
             "cliente",
@@ -315,9 +303,8 @@ def imprimir_factura_win32ui_espacios(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        delete_font = getattr(font, "DeleteObject", None)
-        if callable(delete_font):
-            delete_font()
+        if font:
+            font.DeleteObject()
 
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
@@ -378,7 +365,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), cm_a_twips(y_cm), texto)
+            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
         header_order = [
             "cliente",
@@ -421,9 +408,8 @@ def imprimir_factura_win32ui_tabs(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        delete_font = getattr(font, "DeleteObject", None)
-        if callable(delete_font):
-            delete_font()
+        if font:
+            font.DeleteObject()
 
         draw(0, 10.10, "Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
 
@@ -483,7 +469,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), cm_a_twips(y_cm), texto)
+            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
         header_order = [
             "cliente",
@@ -525,9 +511,8 @@ def imprimir_factura_win32ui_crlf(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        delete_font = getattr(font, "DeleteObject", None)
-        if callable(delete_font):
-            delete_font()
+        if font:
+            font.DeleteObject()
 
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
