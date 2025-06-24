@@ -22,6 +22,12 @@ try:
 except Exception:
     Serial = None
 
+# Comandos de la EPSON TM-U950 para seleccionar el modo de impresi\u00f3n.
+# SLIP_MODE habilita la bandeja de formularios y SLIP4_MODE indica que
+# se utilizar\u00e1 la posici\u00f3n "slip 4" recomendada para facturas.
+SLIP_MODE = b"\x1B\x69"
+SLIP4_MODE = b"\x1B\x69\x04"
+
 try:
     from reportlab.lib.pagesizes import LETTER
     from reportlab.pdfgen import canvas
@@ -38,6 +44,10 @@ def coordenada_a_texto_raw(prev_y_cm, x_cm, y_cm, texto, ancho_char_cm=0.25, alt
     espacios = int(x_cm / ancho_char_cm)
     saltos = int((y_cm - prev_y_cm) / alto_linea_cm)
     return ("\n" * saltos) + (" " * espacios) + texto + "\n", y_cm
+
+def cm_a_twips(valor_cm: float) -> int:
+    """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
+    return int(valor_cm * 567)
 
 def imprimir_factura_raw(printer_name):
     """Imprime una factura de prueba directamente en la impresora RAW."""
@@ -112,12 +122,14 @@ def imprimir_factura_raw(printer_name):
     factura_raw += line
     line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 25.08, "4.01")
     factura_raw += line
-    SLIP_MODE = b"\x1B\x69"  # ESC i
+    # Forzar impresi\u00f3n en modo slip 4 para que la impresora utilice
+    # la bandeja de formularios en lugar del recibo continuo.
+    slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
         win32print.StartDocPrinter(hprinter, 1, ("Factura RAW", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
-        win32print.WritePrinter(hprinter, SLIP_MODE + factura_raw.encode("utf-8"))
+        win32print.WritePrinter(hprinter, slip_cmd + factura_raw.encode("utf-8"))
         win32print.EndPagePrinter(hprinter)
         win32print.EndDocPrinter(hprinter)
         win32print.ClosePrinter(hprinter)
@@ -131,12 +143,12 @@ def imprimir_factura_raw_simple(printer_name):
         messagebox.showerror("Error", "win32print no está instalado. Instala pywin32.")
         return
     factura = """Francisco López\nCol. Escalón, San Salvador\n2025-06-12\nComercio\n2025-06-10\n30 DÍAS\nMaría Pérez\n123456-7\nREM-00123\n0614-250786-102-3\nORD-789\nDistribuidora S.A.\n2025-05-30\n\nCant  Descripción             Precio  Exentas  NoSuj  Gravadas\n2     Paracetamol 500mg       0.50    0.00     0.00   1.00\n1     Ibuprofeno 200mg        0.75    0.00     0.00   0.75\n3     Vitamina C 1000mg       0.60    0.00     0.00   1.80\n\nCuatro dólares con cincuenta centavos\nSumas: 3.55\nIVA: 0.46\nSubtotal: 4.01\nExentas: 0.00\nNo sujetas: 0.00\nDescuentos: 0.00\nTotal: 4.01\n"""
-    SLIP_MODE = b"\x1B\x69"
+    slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
         win32print.StartDocPrinter(hprinter, 1, ("Factura RAW Simple", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
-        win32print.WritePrinter(hprinter, SLIP_MODE + factura.encode("utf-8"))
+        win32print.WritePrinter(hprinter, slip_cmd + factura.encode("utf-8"))
         win32print.EndPagePrinter(hprinter)
         win32print.EndDocPrinter(hprinter)
         win32print.ClosePrinter(hprinter)
@@ -157,12 +169,12 @@ def imprimir_factura_raw_tabs(printer_name):
         "3\tVitamina C 1000mg\t\t0.60\t0.00\t0.00\t1.80\n\n"
         "Cuatro dólares con cincuenta centavos\nSumas:\t3.55\nIVA:\t0.46\nSubtotal:\t4.01\nExentas:\t0.00\nNo sujetas:\t0.00\nDescuentos:\t0.00\nTotal:\t4.01\n"
     )
-    SLIP_MODE = b"\x1B\x69"
+    slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
         win32print.StartDocPrinter(hprinter, 1, ("Factura RAW Tabs", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
-        win32print.WritePrinter(hprinter, SLIP_MODE + factura.encode("utf-8"))
+        win32print.WritePrinter(hprinter, slip_cmd + factura.encode("utf-8"))
         win32print.EndPagePrinter(hprinter)
         win32print.EndDocPrinter(hprinter)
         win32print.ClosePrinter(hprinter)
@@ -183,12 +195,12 @@ def imprimir_factura_raw_crlf(printer_name):
         "3     Vitamina C 1000mg       0.60    0.00     0.00   1.80\r\n\r\n"
         "Cuatro dólares con cincuenta centavos\r\nSumas: 3.55\r\nIVA: 0.46\r\nSubtotal: 4.01\r\nExentas: 0.00\r\nNo sujetas: 0.00\r\nDescuentos: 0.00\r\nTotal: 4.01\r\n"
     )
-    SLIP_MODE = b"\x1B\x69"
+    slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
         win32print.StartDocPrinter(hprinter, 1, ("Factura RAW CRLF", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
-        win32print.WritePrinter(hprinter, SLIP_MODE + factura.encode("utf-8"))
+        win32print.WritePrinter(hprinter, slip_cmd + factura.encode("utf-8"))
         win32print.EndPagePrinter(hprinter)
         win32print.EndDocPrinter(hprinter)
         win32print.ClosePrinter(hprinter)
@@ -206,14 +218,61 @@ def imprimir_factura_win32ui(printer_name):
         return
     try:
         hprinter = win32print.OpenPrinter(printer_name)
+        # Seleccionar modo slip 4 para la impresora
+        win32print.WritePrinter(hprinter, SLIP4_MODE)
+
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
         if win32con:
             dc.SetMapMode(win32con.MM_TWIPS)
         dc.StartDoc("Factura win32ui")
         dc.StartPage()
-        dc.TextOut(1000, -700, "Factura de prueba")
-        dc.TextOut(1000, -1000, "Artículo 1     1.00")
+
+        def draw(x_cm, y_cm, texto):
+            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+
+        # Encabezado (solo datos)
+        draw(4.45, 4.80, "Francisco L\u00f3pez")
+        draw(4.45, 5.40, "Col. Escal\u00f3n, San Salvador")
+        draw(3.81, 6.40, "2025-06-12")
+        draw(3.81, 6.90, "Comercio")
+        draw(3.81, 7.50, "2025-06-10")
+        draw(4.45, 8.00, "30 D\u00cdAS")
+        draw(4.45, 8.50, "Mar\u00eda P\u00e9rez")
+        draw(7.62, 6.40, "123456-7")
+        draw(7.62, 7.50, "REM-00123")
+        draw(11.43, 6.40, "0614-250786-102-3")
+        draw(12.07, 7.50, "ORD-789")
+        draw(11.43, 8.00, "Distribuidora S.A.")
+        draw(11.75, 8.50, "2025-05-30")
+
+        # Productos
+        productos = [
+            ("2", "Paracetamol 500mg", "0.50", "0.00", "0.00", "1.00"),
+            ("1", "Ibuprofeno 200mg", "0.75", "0.00", "0.00", "0.75"),
+            ("3", "Vitamina C 1000mg", "0.60", "0.00", "0.00", "1.80"),
+        ]
+        y_base = 10.10
+        row_height = 0.6
+        for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
+            y = y_base + i * row_height
+            draw(2.22, y, cant)
+            draw(3.90, y, desc)
+            draw(9.21, y, prec)
+            draw(11.11, y, ex)
+            draw(12.70, y, ns)
+            draw(14.10, y, grav)
+
+        # Totales
+        draw(2.22, 22.23, "Cuatro d\u00f3lares con cincuenta centavos")
+        draw(14.10, 21.59, "3.55")
+        draw(14.10, 22.23, "0.46")
+        draw(14.10, 22.86, "4.01")
+        draw(14.10, 23.45, "0.00")
+        draw(14.10, 24.00, "0.00")
+        draw(14.10, 24.60, "0.00")
+        draw(14.10, 25.08, "4.01")
+
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
