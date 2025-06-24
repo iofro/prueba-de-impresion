@@ -92,13 +92,13 @@ def generar_factura_datos():
     ]
 
     totales = {
-        "literal": "Cuatro d\u00f3lares con cincuenta centavos",
+        "literal": "Cuatro dólares con cincuenta centavos",
         "sumas": "3.55",
         "iva": "0.46",
         "subtotal": "4.01",
-        "exentas": "0.00",
+        "iva_retenido": "0.00",
         "no_sujetas": "0.00",
-        "descuentos": "0.00",
+        "ventas_exentas": "0.00",
         "total": "4.01",
     }
 
@@ -192,9 +192,9 @@ def imprimir_factura_win32ui(printer_name):
             totales["sumas"],
             totales["iva"],
             totales["subtotal"],
-            totales["exentas"],
+            totales["iva_retenido"],
             totales["no_sujetas"],
-            totales["descuentos"],
+            totales["ventas_exentas"],
             totales["total"],
         ]
         for (x, y), text in zip(totals_pos, totals_vals):
@@ -256,12 +256,12 @@ def imprimir_factura_win32ui_espacios(printer_name):
         lines.append("")
         lines.append(totales["literal"])
         lines.append(f"Sumas: {totales['sumas']}")
-        lines.append(f"IVA: {totales['iva']}")
+        lines.append(f"13% IVA: {totales['iva']}")
         lines.append(f"Subtotal: {totales['subtotal']}")
-        lines.append(f"Exentas: {totales['exentas']}")
-        lines.append(f"No sujetas: {totales['no_sujetas']}")
-        lines.append(f"Descuentos: {totales['descuentos']}")
-        lines.append(f"Total: {totales['total']}")
+        lines.append(f"IVA retenido: {totales['iva_retenido']}")
+        lines.append(f"Vtas no sujetas: {totales['no_sujetas']}")
+        lines.append(f"Ventas exentas: {totales['ventas_exentas']}")
+        lines.append(f"Venta total: {totales['total']}")
 
         y = 4.8
         line_height = 0.6
@@ -325,12 +325,12 @@ def imprimir_factura_win32ui_tabs(printer_name):
         lines.append("")
         lines.append(totales["literal"])
         lines.append(f"Sumas:\t{totales['sumas']}")
-        lines.append(f"IVA:\t{totales['iva']}")
+        lines.append(f"13% IVA:\t{totales['iva']}")
         lines.append(f"Subtotal:\t{totales['subtotal']}")
-        lines.append(f"Exentas:\t{totales['exentas']}")
-        lines.append(f"No sujetas:\t{totales['no_sujetas']}")
-        lines.append(f"Descuentos:\t{totales['descuentos']}")
-        lines.append(f"Total:\t{totales['total']}")
+        lines.append(f"IVA retenido:\t{totales['iva_retenido']}")
+        lines.append(f"Vtas no sujetas:\t{totales['no_sujetas']}")
+        lines.append(f"Ventas exentas:\t{totales['ventas_exentas']}")
+        lines.append(f"Venta total:\t{totales['total']}")
 
         y = 4.8
         line_height = 0.6
@@ -394,12 +394,12 @@ def imprimir_factura_win32ui_crlf(printer_name):
         lines.append("")
         lines.append(totales["literal"])
         lines.append(f"Sumas: {totales['sumas']}")
-        lines.append(f"IVA: {totales['iva']}")
+        lines.append(f"13% IVA: {totales['iva']}")
         lines.append(f"Subtotal: {totales['subtotal']}")
-        lines.append(f"Exentas: {totales['exentas']}")
-        lines.append(f"No sujetas: {totales['no_sujetas']}")
-        lines.append(f"Descuentos: {totales['descuentos']}")
-        lines.append(f"Total: {totales['total']}")
+        lines.append(f"IVA retenido: {totales['iva_retenido']}")
+        lines.append(f"Vtas no sujetas: {totales['no_sujetas']}")
+        lines.append(f"Ventas exentas: {totales['ventas_exentas']}")
+        lines.append(f"Venta total: {totales['total']}")
 
         y = 4.8
         line_height = 0.6
