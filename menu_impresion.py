@@ -25,6 +25,14 @@ def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
     return round(valor_cm * 566.93)
 
+def seleccionar_fuente(dc, puntos=12):
+    """Crea y selecciona en el DC una fuente de *puntos* puntos."""
+    if win32ui is None:
+        return None, None
+    font = win32ui.CreateFont({"name": "Arial", "height": -puntos * 20})
+    old = dc.SelectObject(font)
+    return font, old
+
 def activar_modo_slip(printer_name: str) -> bool:
     """Activa el modo SLIP4 en la impresora para usar la bandeja de formularios."""
     if win32print is None:
@@ -117,6 +125,7 @@ def imprimir_factura_win32ui(printer_name):
             dc.SetMapMode(win32con.MM_TWIPS)
         dc.StartDoc("Factura win32ui")
         dc.StartPage()
+        font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -191,6 +200,10 @@ def imprimir_factura_win32ui(printer_name):
         for (x, y), text in zip(totals_pos, totals_vals):
             draw(x, y, text)
 
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            font.DeleteObject()
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -223,6 +236,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
             dc.SetMapMode(win32con.MM_TWIPS)
         dc.StartDoc("Factura win32ui espacios")
         dc.StartPage()
+        font, old_font = seleccionar_fuente(dc, 12)
 
         header_order = [
             "cliente",
@@ -261,6 +275,10 @@ def imprimir_factura_win32ui_espacios(printer_name):
             dc.TextOut(0, -cm_a_twips(y), linea)
             y += line_height
 
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            font.DeleteObject()
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -293,6 +311,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
             dc.SetMapMode(win32con.MM_TWIPS)
         dc.StartDoc("Factura win32ui tabs")
         dc.StartPage()
+        font, old_font = seleccionar_fuente(dc, 12)
 
         header_order = [
             "cliente",
@@ -331,6 +350,10 @@ def imprimir_factura_win32ui_tabs(printer_name):
             dc.TextOut(0, -cm_a_twips(y), linea)
             y += line_height
 
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            font.DeleteObject()
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -363,6 +386,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
             dc.SetMapMode(win32con.MM_TWIPS)
         dc.StartDoc("Factura win32ui CRLF")
         dc.StartPage()
+        font, old_font = seleccionar_fuente(dc, 12)
 
         header_order = [
             "cliente",
@@ -401,6 +425,10 @@ def imprimir_factura_win32ui_crlf(printer_name):
             dc.TextOut(0, -cm_a_twips(y), linea)
             y += line_height
 
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            font.DeleteObject()
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
