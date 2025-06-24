@@ -39,6 +39,10 @@ Los métodos disponibles incluyen únicamente variantes de `win32ui`:
 
 La aplicación intenta usar de forma predeterminada una fuente de matriz de
 puntos (`Dot Matrix`) para asemejar la salida de las impresoras de impacto.
-Puedes cambiar el nombre de la fuente modificando la constante
-`DEFAULT_FONT_NAME` en `menu_impresion.py`. Si la fuente no está instalada en
-el sistema se utilizará `Courier New` como alternativa.
+Es necesario que dicha fuente esté instalada en el sistema; de lo contrario
+se utilizará `Courier New` como alternativa.
+
+Si notas que los caracteres se ven cortados o poco legibles, verifica qué
+fuentes incluye el driver de tu impresora (por ejemplo, "EPSON Draft 10cpi" o
+"EPSON Roman 12cpi") e indica el nombre exacto en la constante
+`DEFAULT_FONT_NAME` de `menu_impresion.py`.
