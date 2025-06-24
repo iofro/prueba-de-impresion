@@ -34,3 +34,11 @@ Los métodos disponibles incluyen únicamente variantes de `win32ui`:
 - Alineado por espacios
 - Alineado con tabulaciones
 - Alineado con CRLF
+
+## Fuente de impresión
+
+La aplicación intenta usar de forma predeterminada una fuente de matriz de
+puntos (`Dot Matrix`) para asemejar la salida de las impresoras de impacto.
+Puedes cambiar el nombre de la fuente modificando la constante
+`DEFAULT_FONT_NAME` en `menu_impresion.py`. Si la fuente no está instalada en
+el sistema se utilizará `Courier New` como alternativa.
