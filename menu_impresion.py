@@ -52,7 +52,8 @@ def configurar_mapeo(dc):
     alto = dc.GetDeviceCaps(win32con.VERTRES)
     # Alinear el origen lógico con la esquina superior izquierda
     dc.SetWindowOrg((0, 0))
-    dc.SetWindowExt((cm_a_twips(27.5), cm_a_twips(16.6)))
+    # El parámetro de ancho es 16.6 cm y el alto 27.5 cm
+    dc.SetWindowExt((cm_a_twips(16.6), cm_a_twips(27.5)))
     dc.SetViewportOrg((0, alto))
     dc.SetViewportExt((ancho, -alto))
 
@@ -233,8 +234,9 @@ def imprimir_factura_win32ui(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        if font and hasattr(font, "DeleteObject"):
-            font.DeleteObject()
+        delete_font = getattr(font, "DeleteObject", None)
+        if callable(delete_font):
+            delete_font()
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -313,8 +315,9 @@ def imprimir_factura_win32ui_espacios(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        if font and hasattr(font, "DeleteObject"):
-            font.DeleteObject()
+        delete_font = getattr(font, "DeleteObject", None)
+        if callable(delete_font):
+            delete_font()
 
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
@@ -418,8 +421,9 @@ def imprimir_factura_win32ui_tabs(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        if font and hasattr(font, "DeleteObject"):
-            font.DeleteObject()
+        delete_font = getattr(font, "DeleteObject", None)
+        if callable(delete_font):
+            delete_font()
 
         draw(0, 10.10, "Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
 
@@ -521,8 +525,9 @@ def imprimir_factura_win32ui_crlf(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        if font and hasattr(font, "DeleteObject"):
-            font.DeleteObject()
+        delete_font = getattr(font, "DeleteObject", None)
+        if callable(delete_font):
+            delete_font()
 
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
