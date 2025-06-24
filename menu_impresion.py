@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+DEFAULT_FONT_NAME = "Dot Matrix"
+
 # Intenta importar win32print, si no está disponible muestra un error al intentar imprimir
 try:
     import win32print
@@ -26,11 +28,18 @@ def cm_a_twips(valor_cm: float) -> int:
     return round(valor_cm * 566.93)
 
 
-def seleccionar_fuente(dc, puntos=12):
-    """Crea y selecciona en el DC una fuente de *puntos* puntos."""
+def seleccionar_fuente(dc, puntos=12, nombre=DEFAULT_FONT_NAME):
+    """Crea y selecciona en el DC una fuente *nombre* de *puntos* puntos.
+
+    Si la fuente no está disponible se utilizará ``Courier New`` como
+    alternativa.
+    """
     if win32ui is None:
         return None, None
-    font = win32ui.CreateFont({"name": "Arial", "height": -puntos * 20})
+    try:
+        font = win32ui.CreateFont({"name": nombre, "height": -puntos * 20})
+    except Exception:
+        font = win32ui.CreateFont({"name": "Courier New", "height": -puntos * 20})
     old = dc.SelectObject(font)
     return font, old
 
