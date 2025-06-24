@@ -50,9 +50,10 @@ def configurar_mapeo(dc):
     dc.SetMapMode(win32con.MM_TWIPS)
     ancho = dc.GetDeviceCaps(win32con.HORZRES)
     alto = dc.GetDeviceCaps(win32con.VERTRES)
-    # PyCDC no expone los métodos *Ex, por lo que utilizamos las variantes
-    # simples que aceptan una tupla como parámetro.
+    # Alinear el origen lógico con la esquina superior izquierda
+    dc.SetWindowOrg((0, 0))
     dc.SetWindowExt((cm_a_twips(27.5), cm_a_twips(16.6)))
+    dc.SetViewportOrg((0, alto))
     dc.SetViewportExt((ancho, -alto))
 
 
@@ -150,7 +151,7 @@ def imprimir_factura_win32ui(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+            dc.TextOut(cm_a_twips(x_cm), cm_a_twips(y_cm), texto)
 
         # Encabezado (solo datos)
         header_pos = [
@@ -268,7 +269,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+            dc.TextOut(cm_a_twips(x_cm), cm_a_twips(y_cm), texto)
 
         header_order = [
             "cliente",
@@ -374,7 +375,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+            dc.TextOut(cm_a_twips(x_cm), cm_a_twips(y_cm), texto)
 
         header_order = [
             "cliente",
@@ -478,7 +479,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+            dc.TextOut(cm_a_twips(x_cm), cm_a_twips(y_cm), texto)
 
         header_order = [
             "cliente",
