@@ -14,6 +14,10 @@ try:
     import win32ui
 except ImportError:
     win32ui = None
+try:
+    import win32gui
+except ImportError:
+    win32gui = None
 
 
 # Comandos de la EPSON TM-U950 para seleccionar el modo de impresi\u00f3n.
@@ -138,7 +142,7 @@ def imprimir_factura_win32ui(printer_name):
         configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui")
         dc.StartPage()
-        font, old_font = seleccionar_fuente(dc, 12)
+        font, old_font = seleccionar_fuente(dc, 14)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -224,7 +228,13 @@ def imprimir_factura_win32ui(printer_name):
         if old_font:
             dc.SelectObject(old_font)
         if font:
-            font.DeleteObject()
+            if hasattr(font, "DeleteObject"):
+                font.DeleteObject()
+            elif win32gui is not None:
+                try:
+                    win32gui.DeleteObject(font.GetHandle())
+                except Exception:
+                    pass
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -256,7 +266,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
         configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui espacios")
         dc.StartPage()
-        font, old_font = seleccionar_fuente(dc, 12)
+        font, old_font = seleccionar_fuente(dc, 14)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -304,7 +314,13 @@ def imprimir_factura_win32ui_espacios(printer_name):
         if old_font:
             dc.SelectObject(old_font)
         if font:
-            font.DeleteObject()
+            if hasattr(font, "DeleteObject"):
+                font.DeleteObject()
+            elif win32gui is not None:
+                try:
+                    win32gui.DeleteObject(font.GetHandle())
+                except Exception:
+                    pass
 
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
@@ -362,7 +378,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
         configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui tabs")
         dc.StartPage()
-        font, old_font = seleccionar_fuente(dc, 12)
+        font, old_font = seleccionar_fuente(dc, 14)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -409,7 +425,13 @@ def imprimir_factura_win32ui_tabs(printer_name):
         if old_font:
             dc.SelectObject(old_font)
         if font:
-            font.DeleteObject()
+            if hasattr(font, "DeleteObject"):
+                font.DeleteObject()
+            elif win32gui is not None:
+                try:
+                    win32gui.DeleteObject(font.GetHandle())
+                except Exception:
+                    pass
 
         draw(0, 10.10, "Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
 
@@ -466,7 +488,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
         configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui CRLF")
         dc.StartPage()
-        font, old_font = seleccionar_fuente(dc, 12)
+        font, old_font = seleccionar_fuente(dc, 14)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -512,7 +534,13 @@ def imprimir_factura_win32ui_crlf(printer_name):
         if old_font:
             dc.SelectObject(old_font)
         if font:
-            font.DeleteObject()
+            if hasattr(font, "DeleteObject"):
+                font.DeleteObject()
+            elif win32gui is not None:
+                try:
+                    win32gui.DeleteObject(font.GetHandle())
+                except Exception:
+                    pass
 
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
