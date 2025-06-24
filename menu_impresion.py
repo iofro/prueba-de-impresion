@@ -23,9 +23,8 @@ except Exception:
     Serial = None
 
 # Comandos de la EPSON TM-U950 para seleccionar el modo de impresi\u00f3n.
-# SLIP_MODE habilita la bandeja de formularios y SLIP4_MODE indica que
-# se utilizar\u00e1 la posici\u00f3n "slip 4" recomendada para facturas.
-SLIP_MODE = b"\x1B\x69"
+# SLIP4_MODE indica que se utilizará la posición "slip 4" recomendada
+# para facturas en la bandeja de formularios.
 SLIP4_MODE = b"\x1B\x69\x04"
 
 try:
