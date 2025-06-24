@@ -175,8 +175,16 @@ def imprimir_factura_win32ui(printer_name):
         for (x, y), text in zip(header_pos, header_vals):
             draw(x, y, text)
 
+        # Encabezado de la tabla de productos
+        draw(2.22, 10.10, "Cantidad")
+        draw(3.90, 10.10, "Descripción")
+        draw(9.21, 10.10, "Precio unitario")
+        draw(11.11, 10.10, "Ventas exentas")
+        draw(12.70, 10.10, "Ventas no sujetas")
+        draw(14.10, 10.10, "Ventas gravadas")
+
         # Productos
-        y_base = 10.10
+        y_base = 10.70
         row_height = 0.6
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
             y = y_base + i * row_height
@@ -248,6 +256,9 @@ def imprimir_factura_win32ui_espacios(printer_name):
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
 
+        def draw(x_cm, y_cm, texto):
+            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+
         header_order = [
             "cliente",
             "direccion",
@@ -264,6 +275,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
             "fecha_doc",
         ]
 
+
         lines = [encabezado[campo] for campo in header_order]
         lines.append("")
         lines.append("Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
@@ -279,16 +291,44 @@ def imprimir_factura_win32ui_espacios(printer_name):
         lines.append(f"Ventas exentas: {totales['ventas_exentas']}")
         lines.append(f"Venta total: {totales['total']}")
 
+
         y = 4.8
         line_height = 0.6
-        for linea in lines:
-            dc.TextOut(0, -cm_a_twips(y), linea)
+        for campo in header_order:
+            draw(0, y, encabezado[campo])
             y += line_height
+
 
         if old_font:
             dc.SelectObject(old_font)
         if font:
             font.DeleteObject()
+
+        draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
+
+        y_base = 10.70
+        for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
+            y_line = y_base + i * line_height
+            draw(0, y_line, f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}")
+
+        y = y_base + len(productos) * line_height + line_height
+        draw(0, y, totales["literal"])
+        y += line_height
+        draw(0, y, f"Sumas: {totales['sumas']}")
+        y += line_height
+        draw(0, y, f"IVA: {totales['iva']}")
+        y += line_height
+        draw(0, y, f"Subtotal: {totales['subtotal']}")
+        y += line_height
+        draw(0, y, f"Exentas: {totales['exentas']}")
+        y += line_height
+        draw(0, y, f"No sujetas: {totales['no_sujetas']}")
+        y += line_height
+        draw(0, y, f"Descuentos: {totales['descuentos']}")
+        y += line_height
+        draw(0, y, f"Total: {totales['total']}")
+
+
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -322,6 +362,9 @@ def imprimir_factura_win32ui_tabs(printer_name):
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
 
+        def draw(x_cm, y_cm, texto):
+            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+
         header_order = [
             "cliente",
             "direccion",
@@ -337,6 +380,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
             "proveedor",
             "fecha_doc",
         ]
+
 
         lines = [encabezado[campo] for campo in header_order]
         lines.append("")
@@ -355,14 +399,40 @@ def imprimir_factura_win32ui_tabs(printer_name):
 
         y = 4.8
         line_height = 0.6
-        for linea in lines:
-            dc.TextOut(0, -cm_a_twips(y), linea)
+        for campo in header_order:
+            draw(0, y, encabezado[campo])
             y += line_height
+
 
         if old_font:
             dc.SelectObject(old_font)
         if font:
             font.DeleteObject()
+
+        draw(0, 10.10, "Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
+
+        y_base = 10.70
+        for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
+            y_line = y_base + i * line_height
+            draw(0, y_line, f"{cant}\t{desc}\t\t{prec}\t{ex}\t{ns}\t{grav}")
+
+        y = y_base + len(productos) * line_height + line_height
+        draw(0, y, totales["literal"])
+        y += line_height
+        draw(0, y, f"Sumas:\t{totales['sumas']}")
+        y += line_height
+        draw(0, y, f"IVA:\t{totales['iva']}")
+        y += line_height
+        draw(0, y, f"Subtotal:\t{totales['subtotal']}")
+        y += line_height
+        draw(0, y, f"Exentas:\t{totales['exentas']}")
+        y += line_height
+        draw(0, y, f"No sujetas:\t{totales['no_sujetas']}")
+        y += line_height
+        draw(0, y, f"Descuentos:\t{totales['descuentos']}")
+        y += line_height
+        draw(0, y, f"Total:\t{totales['total']}")
+
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -395,6 +465,9 @@ def imprimir_factura_win32ui_crlf(printer_name):
         dc.StartDoc("Factura win32ui CRLF")
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
+
+        def draw(x_cm, y_cm, texto):
+            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
         header_order = [
             "cliente",
@@ -429,14 +502,41 @@ def imprimir_factura_win32ui_crlf(printer_name):
 
         y = 4.8
         line_height = 0.6
-        for linea in lines:
-            dc.TextOut(0, -cm_a_twips(y), linea)
+        for campo in header_order:
+            draw(0, y, encabezado[campo])
             y += line_height
+
 
         if old_font:
             dc.SelectObject(old_font)
         if font:
             font.DeleteObject()
+
+        draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
+
+        y_base = 10.70
+        for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
+            y_line = y_base + i * line_height
+            draw(0, y_line, f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}")
+
+        y = y_base + len(productos) * line_height + line_height
+        draw(0, y, totales["literal"])
+        y += line_height
+        draw(0, y, f"Sumas: {totales['sumas']}")
+        y += line_height
+        draw(0, y, f"IVA: {totales['iva']}")
+        y += line_height
+        draw(0, y, f"Subtotal: {totales['subtotal']}")
+        y += line_height
+        draw(0, y, f"Exentas: {totales['exentas']}")
+        y += line_height
+        draw(0, y, f"No sujetas: {totales['no_sujetas']}")
+        y += line_height
+        draw(0, y, f"Descuentos: {totales['descuentos']}")
+        y += line_height
+        draw(0, y, f"Total: {totales['total']}")
+
+
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
