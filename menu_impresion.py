@@ -25,6 +25,16 @@ def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
     return round(valor_cm * 566.93)
 
+def configurar_mapeo(dc):
+    """Configura el mapeo para que 27.5 cm x 16.6 cm coincidan con el área imprimible."""
+    if not win32con:
+        return
+    dc.SetMapMode(win32con.MM_TWIPS)
+    ancho = dc.GetDeviceCaps(win32con.HORZRES)
+    alto = dc.GetDeviceCaps(win32con.VERTRES)
+    dc.SetWindowExtEx(cm_a_twips(27.5), cm_a_twips(16.6))
+    dc.SetViewportExtEx(ancho, -alto)
+
 def activar_modo_slip(printer_name: str) -> bool:
     """Activa el modo SLIP4 en la impresora para usar la bandeja de formularios."""
     if win32print is None:
@@ -113,8 +123,7 @@ def imprimir_factura_win32ui(printer_name):
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
-        if win32con:
-            dc.SetMapMode(win32con.MM_TWIPS)
+        configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui")
         dc.StartPage()
 
@@ -219,8 +228,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
-        if win32con:
-            dc.SetMapMode(win32con.MM_TWIPS)
+        configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui espacios")
         dc.StartPage()
 
@@ -289,8 +297,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
-        if win32con:
-            dc.SetMapMode(win32con.MM_TWIPS)
+        configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui tabs")
         dc.StartPage()
 
@@ -359,8 +366,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
-        if win32con:
-            dc.SetMapMode(win32con.MM_TWIPS)
+        configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui CRLF")
         dc.StartPage()
 
