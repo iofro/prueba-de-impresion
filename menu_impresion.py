@@ -25,6 +25,15 @@ def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
     return round(valor_cm * 566.93)
 
+
+def seleccionar_fuente(dc, puntos=12):
+    """Crea y selecciona en el DC una fuente de *puntos* puntos."""
+    if win32ui is None:
+        return None, None
+    font = win32ui.CreateFont({"name": "Arial", "height": -puntos * 20})
+    old = dc.SelectObject(font)
+    return font, old
+
 def configurar_mapeo(dc):
     """Configura el mapeo para que 27.5 cm x 16.6 cm coincidan con el área imprimible."""
     if not win32con:
@@ -34,6 +43,7 @@ def configurar_mapeo(dc):
     alto = dc.GetDeviceCaps(win32con.VERTRES)
     dc.SetWindowExtEx(cm_a_twips(27.5), cm_a_twips(16.6))
     dc.SetViewportExtEx(ancho, -alto)
+
 
 def activar_modo_slip(printer_name: str) -> bool:
     """Activa el modo SLIP4 en la impresora para usar la bandeja de formularios."""
@@ -126,6 +136,7 @@ def imprimir_factura_win32ui(printer_name):
         configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui")
         dc.StartPage()
+        font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -208,6 +219,10 @@ def imprimir_factura_win32ui(printer_name):
         for (x, y), text in zip(totals_pos, totals_vals):
             draw(x, y, text)
 
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            font.DeleteObject()
         dc.EndPage()
         dc.EndDoc()
         dc.DeleteDC()
@@ -239,6 +254,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
         configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui espacios")
         dc.StartPage()
+        font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -282,6 +298,12 @@ def imprimir_factura_win32ui_espacios(printer_name):
             draw(0, y, encabezado[campo])
             y += line_height
 
+
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            font.DeleteObject()
+
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
         y_base = 10.70
@@ -305,6 +327,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
         draw(0, y, f"Descuentos: {totales['descuentos']}")
         y += line_height
         draw(0, y, f"Total: {totales['total']}")
+
 
         dc.EndPage()
         dc.EndDoc()
@@ -337,6 +360,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
         configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui tabs")
         dc.StartPage()
+        font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -378,6 +402,12 @@ def imprimir_factura_win32ui_tabs(printer_name):
         for campo in header_order:
             draw(0, y, encabezado[campo])
             y += line_height
+
+
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            font.DeleteObject()
 
         draw(0, 10.10, "Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
 
@@ -434,6 +464,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
         configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui CRLF")
         dc.StartPage()
+        font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
@@ -475,6 +506,12 @@ def imprimir_factura_win32ui_crlf(printer_name):
             draw(0, y, encabezado[campo])
             y += line_height
 
+
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            font.DeleteObject()
+
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
         y_base = 10.70
@@ -498,6 +535,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
         draw(0, y, f"Descuentos: {totales['descuentos']}")
         y += line_height
         draw(0, y, f"Total: {totales['total']}")
+
 
         dc.EndPage()
         dc.EndDoc()
