@@ -49,6 +49,24 @@ def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
     return int(valor_cm * 567)
 
+def activar_modo_slip(printer_name: str) -> bool:
+    """Activa el modo SLIP4 en la impresora para usar la bandeja de formularios."""
+    if win32print is None:
+        messagebox.showerror("Error", "win32print no est\u00e1 instalado. Instala pywin32.")
+        return False
+    try:
+        hprinter = win32print.OpenPrinter(printer_name)
+        win32print.StartDocPrinter(hprinter, 1, ("Modo SLIP", None, "RAW"))
+        win32print.StartPagePrinter(hprinter)
+        win32print.WritePrinter(hprinter, SLIP4_MODE)
+        win32print.EndPagePrinter(hprinter)
+        win32print.EndDocPrinter(hprinter)
+        win32print.ClosePrinter(hprinter)
+        return True
+    except Exception as e:
+        messagebox.showerror("Error de impresi\u00f3n", str(e))
+        return False
+
 def imprimir_factura_raw(printer_name):
     """Imprime una factura de prueba directamente en la impresora RAW."""
     if win32print is None:
@@ -290,6 +308,8 @@ def imprimir_factura_win32ui(printer_name):
 
 def imprimir_factura_os_startfile(printer_name):
     """Genera un txt temporal y lo imprime con os.startfile."""
+    if not activar_modo_slip(printer_name):
+        return
     factura = (
         "Factura de prueba\n"
         "Artículo 1\t1.00\n"
@@ -308,6 +328,8 @@ def imprimir_factura_pdf(printer_name):
     if canvas is None:
         messagebox.showerror("Error", "reportlab no está instalado.")
         return
+    if not activar_modo_slip(printer_name):
+        return
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     c = canvas.Canvas(tmp.name, pagesize=LETTER)
     c.drawString(72, 720, "Factura de prueba")
@@ -324,6 +346,8 @@ def imprimir_factura_escpos(printer_name):
     """Imprime usando comandos ESC/POS si el driver está disponible."""
     if Serial is None:
         messagebox.showerror("Error", "Librería escpos no disponible.")
+        return
+    if not activar_modo_slip(printer_name):
         return
     try:
         p = Serial()  # Configuración por defecto /dev/ttyS0
