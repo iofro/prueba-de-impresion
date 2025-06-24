@@ -66,46 +66,103 @@ def activar_modo_slip(printer_name: str) -> bool:
         messagebox.showerror("Error de impresi\u00f3n", str(e))
         return False
 
-def imprimir_factura_raw(printer_name):
-    """Imprime una factura de prueba directamente en la impresora RAW."""
-    if win32print is None:
-        messagebox.showerror("Error", "win32print no está instalado. Instala pywin32.")
-        return
-    factura_raw = ""
-    prev_y_cm = 0.0
-    # Encabezado (solo datos, sin etiquetas)
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 4.80, "Francisco López")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 5.40, "Col. Escalón, San Salvador")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 6.40, "2025-06-12")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 6.90, "Comercio")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 7.50, "2025-06-10")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 8.00, "30 DÍAS")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 8.50, "María Pérez")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 7.62, 6.40, "123456-7")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 7.62, 7.50, "REM-00123")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.43, 6.40, "0614-250786-102-3")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 12.07, 7.50, "ORD-789")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.43, 8.00, "Distribuidora S.A.")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.75, 8.50, "2025-05-30")
-    factura_raw += line
-    # Tabla de productos
+
+def generar_factura_datos():
+    """Devuelve la informaci\u00f3n de la factura de prueba.
+
+    Retorna una tupla con tres elementos:
+
+    ``encabezado``
+        Diccionario de campos del encabezado.
+
+    ``productos``
+        Lista de tuplas con las columnas de la tabla de productos.
+
+    ``totales``
+        Diccionario con los importes de resumen y totales.
+    """
+
+    encabezado = {
+        "cliente": "Francisco L\u00f3pez",
+        "direccion": "Col. Escal\u00f3n, San Salvador",
+        "fecha": "2025-06-12",
+        "giro": "Comercio",
+        "vence": "2025-06-10",
+        "pago": "30 D\u00cdAS",
+        "atencion": "Mar\u00eda P\u00e9rez",
+        "nrc": "123456-7",
+        "remision": "REM-00123",
+        "nit": "0614-250786-102-3",
+        "orden": "ORD-789",
+        "proveedor": "Distribuidora S.A.",
+        "fecha_doc": "2025-05-30",
+    }
+
     productos = [
         ("2", "Paracetamol 500mg", "0.50", "0.00", "0.00", "1.00"),
         ("1", "Ibuprofeno 200mg", "0.75", "0.00", "0.00", "0.75"),
         ("3", "Vitamina C 1000mg", "0.60", "0.00", "0.00", "1.80"),
     ]
+
+    totales = {
+        "literal": "Cuatro d\u00f3lares con cincuenta centavos",
+        "sumas": "3.55",
+        "iva": "0.46",
+        "subtotal": "4.01",
+        "exentas": "0.00",
+        "no_sujetas": "0.00",
+        "descuentos": "0.00",
+        "total": "4.01",
+    }
+
+    return encabezado, productos, totales
+
+def imprimir_factura_raw(printer_name):
+    """Imprime una factura de prueba directamente en la impresora RAW."""
+    if win32print is None:
+        messagebox.showerror("Error", "win32print no está instalado. Instala pywin32.")
+        return
+    encabezado, productos, totales = generar_factura_datos()
+
+    factura_raw = ""
+    prev_y_cm = 0.0
+
+    # Encabezado (solo datos, sin etiquetas)
+    header_pos = [
+        (4.45, 4.80),
+        (4.45, 5.40),
+        (3.81, 6.40),
+        (3.81, 6.90),
+        (3.81, 7.50),
+        (4.45, 8.00),
+        (4.45, 8.50),
+        (7.62, 6.40),
+        (7.62, 7.50),
+        (11.43, 6.40),
+        (12.07, 7.50),
+        (11.43, 8.00),
+        (11.75, 8.50),
+    ]
+    header_vals = [
+        encabezado["cliente"],
+        encabezado["direccion"],
+        encabezado["fecha"],
+        encabezado["giro"],
+        encabezado["vence"],
+        encabezado["pago"],
+        encabezado["atencion"],
+        encabezado["nrc"],
+        encabezado["remision"],
+        encabezado["nit"],
+        encabezado["orden"],
+        encabezado["proveedor"],
+        encabezado["fecha_doc"],
+    ]
+    for (x, y), text in zip(header_pos, header_vals):
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, x, y, text)
+        factura_raw += line
+
+    # Tabla de productos
     y_base = 10.10
     row_height = 0.6
     for i, (cantidad, descripcion, precio, exentas, no_sujetas, gravadas) in enumerate(productos):
@@ -123,22 +180,29 @@ def imprimir_factura_raw(printer_name):
         line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, y, gravadas)
         factura_raw += line
     # Totales y resumen fiscal
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 2.22, 22.23, "Cuatro dólares con cincuenta centavos")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 21.59, "3.55")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 22.23, "0.46")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 22.86, "4.01")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 23.45, "0.00")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 24.00, "0.00")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 24.60, "0.00")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 25.08, "4.01")
-    factura_raw += line
+    totals_pos = [
+        (2.22, 22.23),
+        (14.10, 21.59),
+        (14.10, 22.23),
+        (14.10, 22.86),
+        (14.10, 23.45),
+        (14.10, 24.00),
+        (14.10, 24.60),
+        (14.10, 25.08),
+    ]
+    totals_vals = [
+        totales["literal"],
+        totales["sumas"],
+        totales["iva"],
+        totales["subtotal"],
+        totales["exentas"],
+        totales["no_sujetas"],
+        totales["descuentos"],
+        totales["total"],
+    ]
+    for (x, y), text in zip(totals_pos, totals_vals):
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, x, y, text)
+        factura_raw += line
     # Forzar impresi\u00f3n en modo slip 4 para que la impresora utilice
     # la bandeja de formularios en lugar del recibo continuo.
     slip_cmd = SLIP4_MODE
@@ -160,7 +224,39 @@ def imprimir_factura_raw_simple(printer_name):
     if win32print is None:
         messagebox.showerror("Error", "win32print no está instalado. Instala pywin32.")
         return
-    factura = """Francisco López\nCol. Escalón, San Salvador\n2025-06-12\nComercio\n2025-06-10\n30 DÍAS\nMaría Pérez\n123456-7\nREM-00123\n0614-250786-102-3\nORD-789\nDistribuidora S.A.\n2025-05-30\n\nCant  Descripción             Precio  Exentas  NoSuj  Gravadas\n2     Paracetamol 500mg       0.50    0.00     0.00   1.00\n1     Ibuprofeno 200mg        0.75    0.00     0.00   0.75\n3     Vitamina C 1000mg       0.60    0.00     0.00   1.80\n\nCuatro dólares con cincuenta centavos\nSumas: 3.55\nIVA: 0.46\nSubtotal: 4.01\nExentas: 0.00\nNo sujetas: 0.00\nDescuentos: 0.00\nTotal: 4.01\n"""
+    encabezado, productos, totales = generar_factura_datos()
+
+    header_order = [
+        "cliente",
+        "direccion",
+        "fecha",
+        "giro",
+        "vence",
+        "pago",
+        "atencion",
+        "nrc",
+        "remision",
+        "nit",
+        "orden",
+        "proveedor",
+        "fecha_doc",
+    ]
+
+    lines = [encabezado[campo] for campo in header_order]
+    lines.append("")
+    lines.append("Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
+    for cant, desc, prec, ex, ns, grav in productos:
+        lines.append(f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}")
+    lines.append("")
+    lines.append(totales["literal"])
+    lines.append(f"Sumas: {totales['sumas']}")
+    lines.append(f"IVA: {totales['iva']}")
+    lines.append(f"Subtotal: {totales['subtotal']}")
+    lines.append(f"Exentas: {totales['exentas']}")
+    lines.append(f"No sujetas: {totales['no_sujetas']}")
+    lines.append(f"Descuentos: {totales['descuentos']}")
+    lines.append(f"Total: {totales['total']}")
+    factura = "\n".join(lines) + "\n"
     slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
@@ -180,14 +276,39 @@ def imprimir_factura_raw_tabs(printer_name):
     if win32print is None:
         messagebox.showerror("Error", "win32print no está instalado. Instala pywin32.")
         return
-    factura = (
-        "Francisco López\nCol. Escalón, San Salvador\n2025-06-12\nComercio\n2025-06-10\n30 DÍAS\nMaría Pérez\n123456-7\nREM-00123\n0614-250786-102-3\nORD-789\nDistribuidora S.A.\n2025-05-30\n\n"
-        "Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas\n"
-        "2\tParacetamol 500mg\t\t0.50\t0.00\t0.00\t1.00\n"
-        "1\tIbuprofeno 200mg\t\t0.75\t0.00\t0.00\t0.75\n"
-        "3\tVitamina C 1000mg\t\t0.60\t0.00\t0.00\t1.80\n\n"
-        "Cuatro dólares con cincuenta centavos\nSumas:\t3.55\nIVA:\t0.46\nSubtotal:\t4.01\nExentas:\t0.00\nNo sujetas:\t0.00\nDescuentos:\t0.00\nTotal:\t4.01\n"
-    )
+    encabezado, productos, totales = generar_factura_datos()
+
+    header_order = [
+        "cliente",
+        "direccion",
+        "fecha",
+        "giro",
+        "vence",
+        "pago",
+        "atencion",
+        "nrc",
+        "remision",
+        "nit",
+        "orden",
+        "proveedor",
+        "fecha_doc",
+    ]
+
+    lines = [encabezado[campo] for campo in header_order]
+    lines.append("")
+    lines.append("Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
+    for cant, desc, prec, ex, ns, grav in productos:
+        lines.append(f"{cant}\t{desc}\t\t{prec}\t{ex}\t{ns}\t{grav}")
+    lines.append("")
+    lines.append(totales["literal"])
+    lines.append(f"Sumas:\t{totales['sumas']}")
+    lines.append(f"IVA:\t{totales['iva']}")
+    lines.append(f"Subtotal:\t{totales['subtotal']}")
+    lines.append(f"Exentas:\t{totales['exentas']}")
+    lines.append(f"No sujetas:\t{totales['no_sujetas']}")
+    lines.append(f"Descuentos:\t{totales['descuentos']}")
+    lines.append(f"Total:\t{totales['total']}")
+    factura = "\n".join(lines) + "\n"
     slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
@@ -207,14 +328,39 @@ def imprimir_factura_raw_crlf(printer_name):
     if win32print is None:
         messagebox.showerror("Error", "win32print no está instalado. Instala pywin32.")
         return
-    factura = (
-        "Francisco López\r\nCol. Escalón, San Salvador\r\n2025-06-12\r\nComercio\r\n2025-06-10\r\n30 DÍAS\r\nMaría Pérez\r\n123456-7\r\nREM-00123\r\n0614-250786-102-3\r\nORD-789\r\nDistribuidora S.A.\r\n2025-05-30\r\n\r\n"
-        "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas\r\n"
-        "2     Paracetamol 500mg       0.50    0.00     0.00   1.00\r\n"
-        "1     Ibuprofeno 200mg        0.75    0.00     0.00   0.75\r\n"
-        "3     Vitamina C 1000mg       0.60    0.00     0.00   1.80\r\n\r\n"
-        "Cuatro dólares con cincuenta centavos\r\nSumas: 3.55\r\nIVA: 0.46\r\nSubtotal: 4.01\r\nExentas: 0.00\r\nNo sujetas: 0.00\r\nDescuentos: 0.00\r\nTotal: 4.01\r\n"
-    )
+    encabezado, productos, totales = generar_factura_datos()
+
+    header_order = [
+        "cliente",
+        "direccion",
+        "fecha",
+        "giro",
+        "vence",
+        "pago",
+        "atencion",
+        "nrc",
+        "remision",
+        "nit",
+        "orden",
+        "proveedor",
+        "fecha_doc",
+    ]
+
+    lines = [encabezado[campo] for campo in header_order]
+    lines.append("")
+    lines.append("Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
+    for cant, desc, prec, ex, ns, grav in productos:
+        lines.append(f"{cant: <5}{desc: <23}{prec: >7}    {ex:>4}     {ns:>4}   {grav:>4}")
+    lines.append("")
+    lines.append(totales["literal"])
+    lines.append(f"Sumas: {totales['sumas']}")
+    lines.append(f"IVA: {totales['iva']}")
+    lines.append(f"Subtotal: {totales['subtotal']}")
+    lines.append(f"Exentas: {totales['exentas']}")
+    lines.append(f"No sujetas: {totales['no_sujetas']}")
+    lines.append(f"Descuentos: {totales['descuentos']}")
+    lines.append(f"Total: {totales['total']}")
+    factura = "\r\n".join(lines) + "\r\n"
     slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
@@ -238,6 +384,7 @@ def imprimir_factura_win32ui(printer_name):
         )
         return
     try:
+        encabezado, productos, totales = generar_factura_datos()
         hprinter = win32print.OpenPrinter(printer_name)
         win32print.StartDocPrinter(hprinter, 1, ("Factura win32ui", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
@@ -256,26 +403,40 @@ def imprimir_factura_win32ui(printer_name):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
         # Encabezado (solo datos)
-        draw(4.45, 4.80, "Francisco L\u00f3pez")
-        draw(4.45, 5.40, "Col. Escal\u00f3n, San Salvador")
-        draw(3.81, 6.40, "2025-06-12")
-        draw(3.81, 6.90, "Comercio")
-        draw(3.81, 7.50, "2025-06-10")
-        draw(4.45, 8.00, "30 D\u00cdAS")
-        draw(4.45, 8.50, "Mar\u00eda P\u00e9rez")
-        draw(7.62, 6.40, "123456-7")
-        draw(7.62, 7.50, "REM-00123")
-        draw(11.43, 6.40, "0614-250786-102-3")
-        draw(12.07, 7.50, "ORD-789")
-        draw(11.43, 8.00, "Distribuidora S.A.")
-        draw(11.75, 8.50, "2025-05-30")
+        header_pos = [
+            (4.45, 4.80),
+            (4.45, 5.40),
+            (3.81, 6.40),
+            (3.81, 6.90),
+            (3.81, 7.50),
+            (4.45, 8.00),
+            (4.45, 8.50),
+            (7.62, 6.40),
+            (7.62, 7.50),
+            (11.43, 6.40),
+            (12.07, 7.50),
+            (11.43, 8.00),
+            (11.75, 8.50),
+        ]
+        header_vals = [
+            encabezado["cliente"],
+            encabezado["direccion"],
+            encabezado["fecha"],
+            encabezado["giro"],
+            encabezado["vence"],
+            encabezado["pago"],
+            encabezado["atencion"],
+            encabezado["nrc"],
+            encabezado["remision"],
+            encabezado["nit"],
+            encabezado["orden"],
+            encabezado["proveedor"],
+            encabezado["fecha_doc"],
+        ]
+        for (x, y), text in zip(header_pos, header_vals):
+            draw(x, y, text)
 
         # Productos
-        productos = [
-            ("2", "Paracetamol 500mg", "0.50", "0.00", "0.00", "1.00"),
-            ("1", "Ibuprofeno 200mg", "0.75", "0.00", "0.00", "0.75"),
-            ("3", "Vitamina C 1000mg", "0.60", "0.00", "0.00", "1.80"),
-        ]
         y_base = 10.10
         row_height = 0.6
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
@@ -288,14 +449,28 @@ def imprimir_factura_win32ui(printer_name):
             draw(14.10, y, grav)
 
         # Totales
-        draw(2.22, 22.23, "Cuatro d\u00f3lares con cincuenta centavos")
-        draw(14.10, 21.59, "3.55")
-        draw(14.10, 22.23, "0.46")
-        draw(14.10, 22.86, "4.01")
-        draw(14.10, 23.45, "0.00")
-        draw(14.10, 24.00, "0.00")
-        draw(14.10, 24.60, "0.00")
-        draw(14.10, 25.08, "4.01")
+        totals_pos = [
+            (2.22, 22.23),
+            (14.10, 21.59),
+            (14.10, 22.23),
+            (14.10, 22.86),
+            (14.10, 23.45),
+            (14.10, 24.00),
+            (14.10, 24.60),
+            (14.10, 25.08),
+        ]
+        totals_vals = [
+            totales["literal"],
+            totales["sumas"],
+            totales["iva"],
+            totales["subtotal"],
+            totales["exentas"],
+            totales["no_sujetas"],
+            totales["descuentos"],
+            totales["total"],
+        ]
+        for (x, y), text in zip(totals_pos, totals_vals):
+            draw(x, y, text)
 
         dc.EndPage()
         dc.EndDoc()
@@ -359,39 +534,45 @@ def imprimir_factura_escpos(printer_name):
 
 def vista_previa_factura():
     """Muestra una ventana con el texto de la factura generada (RAW coordenadas)."""
+    encabezado, productos, totales = generar_factura_datos()
+
     factura_raw = ""
     prev_y_cm = 0.0
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 4.80, "Francisco López")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 5.40, "Col. Escalón, San Salvador")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 6.40, "2025-06-12")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 6.90, "Comercio")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 7.50, "2025-06-10")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 8.00, "30 DÍAS")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 8.50, "María Pérez")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 7.62, 6.40, "123456-7")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 7.62, 7.50, "REM-00123")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.43, 6.40, "0614-250786-102-3")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 12.07, 7.50, "ORD-789")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.43, 8.00, "Distribuidora S.A.")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.75, 8.50, "2025-05-30")
-    factura_raw += line
-    productos = [
-        ("2", "Paracetamol 500mg", "0.50", "0.00", "0.00", "1.00"),
-        ("1", "Ibuprofeno 200mg", "0.75", "0.00", "0.00", "0.75"),
-        ("3", "Vitamina C 1000mg", "0.60", "0.00", "0.00", "1.80"),
+
+    header_pos = [
+        (4.45, 4.80),
+        (4.45, 5.40),
+        (3.81, 6.40),
+        (3.81, 6.90),
+        (3.81, 7.50),
+        (4.45, 8.00),
+        (4.45, 8.50),
+        (7.62, 6.40),
+        (7.62, 7.50),
+        (11.43, 6.40),
+        (12.07, 7.50),
+        (11.43, 8.00),
+        (11.75, 8.50),
     ]
+    header_vals = [
+        encabezado["cliente"],
+        encabezado["direccion"],
+        encabezado["fecha"],
+        encabezado["giro"],
+        encabezado["vence"],
+        encabezado["pago"],
+        encabezado["atencion"],
+        encabezado["nrc"],
+        encabezado["remision"],
+        encabezado["nit"],
+        encabezado["orden"],
+        encabezado["proveedor"],
+        encabezado["fecha_doc"],
+    ]
+    for (x, y), text in zip(header_pos, header_vals):
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, x, y, text)
+        factura_raw += line
+
     y_base = 10.10
     row_height = 0.6
     for i, (cantidad, descripcion, precio, exentas, no_sujetas, gravadas) in enumerate(productos):
@@ -408,22 +589,29 @@ def vista_previa_factura():
         factura_raw += line
         line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, y, gravadas)
         factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 2.22, 22.23, "Cuatro dólares con cincuenta centavos")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 21.59, "3.55")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 22.23, "0.46")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 22.86, "4.01")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 23.45, "0.00")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 24.00, "0.00")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 24.60, "0.00")
-    factura_raw += line
-    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 25.08, "4.01")
-    factura_raw += line
+    totals_pos = [
+        (2.22, 22.23),
+        (14.10, 21.59),
+        (14.10, 22.23),
+        (14.10, 22.86),
+        (14.10, 23.45),
+        (14.10, 24.00),
+        (14.10, 24.60),
+        (14.10, 25.08),
+    ]
+    totals_vals = [
+        totales["literal"],
+        totales["sumas"],
+        totales["iva"],
+        totales["subtotal"],
+        totales["exentas"],
+        totales["no_sujetas"],
+        totales["descuentos"],
+        totales["total"],
+    ]
+    for (x, y), text in zip(totals_pos, totals_vals):
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, x, y, text)
+        factura_raw += line
     preview = tk.Toplevel()
     preview.title("Vista previa de factura (RAW coordenadas)")
     text = tk.Text(preview, wrap="none", font=("Courier New", 10))
