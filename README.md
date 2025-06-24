@@ -50,7 +50,7 @@ fuentes incluye el driver de tu impresora (por ejemplo, "EPSON Draft 10cpi" o
 ## Configuración de la página
 
 La función `configurar_mapeo` asume que la factura ocupa un área de
-16.6 × 27.5 cm. Estos valores funcionan para la TM‑U950 pero pueden variar
+27.5 × 16.6 cm. Estos valores funcionan para la TM‑U950 pero pueden variar
 según el modelo y el tamaño de papel. El origen de la vista (offsets
 `PHYSICALOFFSETX` y `PHYSICALOFFSETY`) se consulta directamente a la
 impresora porque cada driver aplica desplazamientos diferentes.

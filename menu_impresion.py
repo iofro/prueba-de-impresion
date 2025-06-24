@@ -100,7 +100,7 @@ def eliminar_fuente(font):
 def configurar_mapeo(dc):
     """Configura el mapeo del DC para coincidir con el tamaño de la factura.
 
-    Se asume un papel de 16.6 × 27.5 cm. Los desplazamientos (`PHYSICALOFFSETX`,
+    Se asume un papel de 27.5 × 16.6 cm. Los desplazamientos (`PHYSICALOFFSETX`,
     `PHYSICALOFFSETY`) se leen de la impresora y pueden variar entre modelos.
     """
     if not win32con:
@@ -112,7 +112,7 @@ def configurar_mapeo(dc):
     offset_y = dc.GetDeviceCaps(win32con.PHYSICALOFFSETY)
     # PyCDC no expone los métodos *Ex, por lo que utilizamos las variantes
     # simples que aceptan una tupla como parámetro.
-    dc.SetWindowExt((cm_a_twips(16.6), cm_a_twips(27.5)))
+    dc.SetWindowExt((cm_a_twips(27.5), cm_a_twips(16.6)))
     dc.SetViewportExt((ancho, -alto))
     dc.SetViewportOrg((-offset_x, offset_y))
 
