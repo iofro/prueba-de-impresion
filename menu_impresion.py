@@ -25,6 +25,16 @@ def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
     return round(valor_cm * 566.93)
 
+def configurar_mapeo(dc):
+    """Configura el mapeo para que 27.5 cm x 16.6 cm coincidan con el área imprimible."""
+    if not win32con:
+        return
+    dc.SetMapMode(win32con.MM_TWIPS)
+    ancho = dc.GetDeviceCaps(win32con.HORZRES)
+    alto = dc.GetDeviceCaps(win32con.VERTRES)
+    dc.SetWindowExtEx(cm_a_twips(27.5), cm_a_twips(16.6))
+    dc.SetViewportExtEx(ancho, -alto)
+
 def activar_modo_slip(printer_name: str) -> bool:
     """Activa el modo SLIP4 en la impresora para usar la bandeja de formularios."""
     if win32print is None:
@@ -82,13 +92,13 @@ def generar_factura_datos():
     ]
 
     totales = {
-        "literal": "Cuatro d\u00f3lares con cincuenta centavos",
+        "literal": "Cuatro dólares con cincuenta centavos",
         "sumas": "3.55",
         "iva": "0.46",
         "subtotal": "4.01",
-        "exentas": "0.00",
+        "iva_retenido": "0.00",
         "no_sujetas": "0.00",
-        "descuentos": "0.00",
+        "ventas_exentas": "0.00",
         "total": "4.01",
     }
 
@@ -113,8 +123,7 @@ def imprimir_factura_win32ui(printer_name):
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
-        if win32con:
-            dc.SetMapMode(win32con.MM_TWIPS)
+        configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui")
         dc.StartPage()
 
@@ -191,9 +200,9 @@ def imprimir_factura_win32ui(printer_name):
             totales["sumas"],
             totales["iva"],
             totales["subtotal"],
-            totales["exentas"],
+            totales["iva_retenido"],
             totales["no_sujetas"],
-            totales["descuentos"],
+            totales["ventas_exentas"],
             totales["total"],
         ]
         for (x, y), text in zip(totals_pos, totals_vals):
@@ -227,8 +236,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
-        if win32con:
-            dc.SetMapMode(win32con.MM_TWIPS)
+        configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui espacios")
         dc.StartPage()
 
@@ -250,6 +258,23 @@ def imprimir_factura_win32ui_espacios(printer_name):
             "proveedor",
             "fecha_doc",
         ]
+
+
+        lines = [encabezado[campo] for campo in header_order]
+        lines.append("")
+        lines.append("Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
+        for cant, desc, prec, ex, ns, grav in productos:
+            lines.append(f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}")
+        lines.append("")
+        lines.append(totales["literal"])
+        lines.append(f"Sumas: {totales['sumas']}")
+        lines.append(f"13% IVA: {totales['iva']}")
+        lines.append(f"Subtotal: {totales['subtotal']}")
+        lines.append(f"IVA retenido: {totales['iva_retenido']}")
+        lines.append(f"Vtas no sujetas: {totales['no_sujetas']}")
+        lines.append(f"Ventas exentas: {totales['ventas_exentas']}")
+        lines.append(f"Venta total: {totales['total']}")
+
 
         y = 4.8
         line_height = 0.6
@@ -309,8 +334,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
-        if win32con:
-            dc.SetMapMode(win32con.MM_TWIPS)
+        configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui tabs")
         dc.StartPage()
 
@@ -332,6 +356,22 @@ def imprimir_factura_win32ui_tabs(printer_name):
             "proveedor",
             "fecha_doc",
         ]
+
+
+        lines = [encabezado[campo] for campo in header_order]
+        lines.append("")
+        lines.append("Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
+        for cant, desc, prec, ex, ns, grav in productos:
+            lines.append(f"{cant}\t{desc}\t\t{prec}\t{ex}\t{ns}\t{grav}")
+        lines.append("")
+        lines.append(totales["literal"])
+        lines.append(f"Sumas:\t{totales['sumas']}")
+        lines.append(f"13% IVA:\t{totales['iva']}")
+        lines.append(f"Subtotal:\t{totales['subtotal']}")
+        lines.append(f"IVA retenido:\t{totales['iva_retenido']}")
+        lines.append(f"Vtas no sujetas:\t{totales['no_sujetas']}")
+        lines.append(f"Ventas exentas:\t{totales['ventas_exentas']}")
+        lines.append(f"Venta total:\t{totales['total']}")
 
         y = 4.8
         line_height = 0.6
@@ -391,8 +431,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
-        if win32con:
-            dc.SetMapMode(win32con.MM_TWIPS)
+        configurar_mapeo(dc)
         dc.StartDoc("Factura win32ui CRLF")
         dc.StartPage()
 
@@ -414,6 +453,21 @@ def imprimir_factura_win32ui_crlf(printer_name):
             "proveedor",
             "fecha_doc",
         ]
+
+        lines = [encabezado[campo] for campo in header_order]
+        lines.append("")
+        lines.append("Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
+        for cant, desc, prec, ex, ns, grav in productos:
+            lines.append(f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}")
+        lines.append("")
+        lines.append(totales["literal"])
+        lines.append(f"Sumas: {totales['sumas']}")
+        lines.append(f"13% IVA: {totales['iva']}")
+        lines.append(f"Subtotal: {totales['subtotal']}")
+        lines.append(f"IVA retenido: {totales['iva_retenido']}")
+        lines.append(f"Vtas no sujetas: {totales['no_sujetas']}")
+        lines.append(f"Ventas exentas: {totales['ventas_exentas']}")
+        lines.append(f"Venta total: {totales['total']}")
 
         y = 4.8
         line_height = 0.6
