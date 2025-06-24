@@ -41,8 +41,10 @@ def configurar_mapeo(dc):
     dc.SetMapMode(win32con.MM_TWIPS)
     ancho = dc.GetDeviceCaps(win32con.HORZRES)
     alto = dc.GetDeviceCaps(win32con.VERTRES)
-    dc.SetWindowExtEx(cm_a_twips(27.5), cm_a_twips(16.6))
-    dc.SetViewportExtEx(ancho, -alto)
+    # PyCDC no expone los métodos *Ex, por lo que utilizamos las variantes
+    # simples que aceptan una tupla como parámetro.
+    dc.SetWindowExt((cm_a_twips(27.5), cm_a_twips(16.6)))
+    dc.SetViewportExt((ancho, -alto))
 
 
 def activar_modo_slip(printer_name: str) -> bool:
@@ -320,13 +322,13 @@ def imprimir_factura_win32ui_espacios(printer_name):
         y += line_height
         draw(0, y, f"Subtotal: {totales['subtotal']}")
         y += line_height
-        draw(0, y, f"Exentas: {totales['exentas']}")
+        draw(0, y, f"IVA retenido: {totales['iva_retenido']}")
         y += line_height
-        draw(0, y, f"No sujetas: {totales['no_sujetas']}")
+        draw(0, y, f"Vtas no sujetas: {totales['no_sujetas']}")
         y += line_height
-        draw(0, y, f"Descuentos: {totales['descuentos']}")
+        draw(0, y, f"Ventas exentas: {totales['ventas_exentas']}")
         y += line_height
-        draw(0, y, f"Total: {totales['total']}")
+        draw(0, y, f"Venta total: {totales['total']}")
 
 
         dc.EndPage()
@@ -425,13 +427,13 @@ def imprimir_factura_win32ui_tabs(printer_name):
         y += line_height
         draw(0, y, f"Subtotal:\t{totales['subtotal']}")
         y += line_height
-        draw(0, y, f"Exentas:\t{totales['exentas']}")
+        draw(0, y, f"IVA retenido:\t{totales['iva_retenido']}")
         y += line_height
-        draw(0, y, f"No sujetas:\t{totales['no_sujetas']}")
+        draw(0, y, f"Vtas no sujetas:\t{totales['no_sujetas']}")
         y += line_height
-        draw(0, y, f"Descuentos:\t{totales['descuentos']}")
+        draw(0, y, f"Ventas exentas:\t{totales['ventas_exentas']}")
         y += line_height
-        draw(0, y, f"Total:\t{totales['total']}")
+        draw(0, y, f"Venta total:\t{totales['total']}")
 
         dc.EndPage()
         dc.EndDoc()
@@ -528,13 +530,13 @@ def imprimir_factura_win32ui_crlf(printer_name):
         y += line_height
         draw(0, y, f"Subtotal: {totales['subtotal']}")
         y += line_height
-        draw(0, y, f"Exentas: {totales['exentas']}")
+        draw(0, y, f"IVA retenido: {totales['iva_retenido']}")
         y += line_height
-        draw(0, y, f"No sujetas: {totales['no_sujetas']}")
+        draw(0, y, f"Vtas no sujetas: {totales['no_sujetas']}")
         y += line_height
-        draw(0, y, f"Descuentos: {totales['descuentos']}")
+        draw(0, y, f"Ventas exentas: {totales['ventas_exentas']}")
         y += line_height
-        draw(0, y, f"Total: {totales['total']}")
+        draw(0, y, f"Venta total: {totales['total']}")
 
 
         dc.EndPage()
