@@ -7,10 +7,16 @@ try:
 except ImportError:
     win32print = None
 
-def coordenada_a_texto_raw(x_cm, y_cm, texto, ancho_char_cm=0.25, alto_linea_cm=0.40):
+def coordenada_a_texto_raw(prev_y_cm, x_cm, y_cm, texto, ancho_char_cm=0.25, alto_linea_cm=0.40):
+    """Convierte coordenadas en centimetros a texto usando saltos de linea.
+
+    ``prev_y_cm`` es la última coordenada Y impresa. El valor se actualiza al
+    devolver el texto formateado para que las siguientes llamadas puedan
+    calcular la diferencia de líneas correctamente.
+    """
     espacios = int(x_cm / ancho_char_cm)
-    saltos = int(y_cm / alto_linea_cm)
-    return ("\n" * saltos) + (" " * espacios) + texto + "\n"
+    saltos = int((y_cm - prev_y_cm) / alto_linea_cm)
+    return ("\n" * saltos) + (" " * espacios) + texto + "\n", y_cm
 
 def imprimir_factura_raw(printer_name):
     """Imprime una factura de prueba directamente en la impresora RAW."""
@@ -18,20 +24,34 @@ def imprimir_factura_raw(printer_name):
         messagebox.showerror("Error", "win32print no está instalado. Instala pywin32.")
         return
     factura_raw = ""
+    prev_y_cm = 0.0
     # Encabezado (solo datos, sin etiquetas)
-    factura_raw += coordenada_a_texto_raw(4.45, 4.80, "Francisco López")
-    factura_raw += coordenada_a_texto_raw(4.45, 5.40, "Col. Escalón, San Salvador")
-    factura_raw += coordenada_a_texto_raw(3.81, 6.40, "2025-06-12")
-    factura_raw += coordenada_a_texto_raw(3.81, 6.90, "Comercio")
-    factura_raw += coordenada_a_texto_raw(3.81, 7.50, "2025-06-10")
-    factura_raw += coordenada_a_texto_raw(4.45, 8.00, "30 DÍAS")
-    factura_raw += coordenada_a_texto_raw(4.45, 8.50, "María Pérez")
-    factura_raw += coordenada_a_texto_raw(7.62, 6.40, "123456-7")
-    factura_raw += coordenada_a_texto_raw(7.62, 7.50, "REM-00123")
-    factura_raw += coordenada_a_texto_raw(11.43, 6.40, "0614-250786-102-3")
-    factura_raw += coordenada_a_texto_raw(12.07, 7.50, "ORD-789")
-    factura_raw += coordenada_a_texto_raw(11.43, 8.00, "Distribuidora S.A.")
-    factura_raw += coordenada_a_texto_raw(11.75, 8.50, "2025-05-30")
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 4.80, "Francisco López")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 5.40, "Col. Escalón, San Salvador")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 6.40, "2025-06-12")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 6.90, "Comercio")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 7.50, "2025-06-10")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 8.00, "30 DÍAS")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 8.50, "María Pérez")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 7.62, 6.40, "123456-7")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 7.62, 7.50, "REM-00123")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.43, 6.40, "0614-250786-102-3")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 12.07, 7.50, "ORD-789")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.43, 8.00, "Distribuidora S.A.")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.75, 8.50, "2025-05-30")
+    factura_raw += line
     # Tabla de productos
     productos = [
         ("2", "Paracetamol 500mg", "0.50", "0.00", "0.00", "1.00"),
@@ -42,21 +62,35 @@ def imprimir_factura_raw(printer_name):
     row_height = 0.6
     for i, (cantidad, descripcion, precio, exentas, no_sujetas, gravadas) in enumerate(productos):
         y = y_base + i * row_height
-        factura_raw += coordenada_a_texto_raw(2.22, y, cantidad)
-        factura_raw += coordenada_a_texto_raw(3.90, y, descripcion)
-        factura_raw += coordenada_a_texto_raw(9.21, y, precio)
-        factura_raw += coordenada_a_texto_raw(11.11, y, exentas)
-        factura_raw += coordenada_a_texto_raw(12.70, y, no_sujetas)
-        factura_raw += coordenada_a_texto_raw(14.10, y, gravadas)
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 2.22, y, cantidad)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.90, y, descripcion)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 9.21, y, precio)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.11, y, exentas)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 12.70, y, no_sujetas)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, y, gravadas)
+        factura_raw += line
     # Totales y resumen fiscal
-    factura_raw += coordenada_a_texto_raw(2.22, 22.23, "Cuatro dólares con cincuenta centavos")
-    factura_raw += coordenada_a_texto_raw(14.10, 21.59, "3.55")
-    factura_raw += coordenada_a_texto_raw(14.10, 22.23, "0.46")
-    factura_raw += coordenada_a_texto_raw(14.10, 22.86, "4.01")
-    factura_raw += coordenada_a_texto_raw(14.10, 23.45, "0.00")
-    factura_raw += coordenada_a_texto_raw(14.10, 24.00, "0.00")
-    factura_raw += coordenada_a_texto_raw(14.10, 24.60, "0.00")
-    factura_raw += coordenada_a_texto_raw(14.10, 25.08, "4.01")
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 2.22, 22.23, "Cuatro dólares con cincuenta centavos")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 21.59, "3.55")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 22.23, "0.46")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 22.86, "4.01")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 23.45, "0.00")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 24.00, "0.00")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 24.60, "0.00")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 25.08, "4.01")
+    factura_raw += line
     SLIP_MODE = b"\x1B\x69"  # ESC i
     try:
         hprinter = win32print.OpenPrinter(printer_name)
@@ -144,19 +178,33 @@ def imprimir_factura_raw_crlf(printer_name):
 def vista_previa_factura():
     """Muestra una ventana con el texto de la factura generada (RAW coordenadas)."""
     factura_raw = ""
-    factura_raw += coordenada_a_texto_raw(4.45, 4.80, "Francisco López")
-    factura_raw += coordenada_a_texto_raw(4.45, 5.40, "Col. Escalón, San Salvador")
-    factura_raw += coordenada_a_texto_raw(3.81, 6.40, "2025-06-12")
-    factura_raw += coordenada_a_texto_raw(3.81, 6.90, "Comercio")
-    factura_raw += coordenada_a_texto_raw(3.81, 7.50, "2025-06-10")
-    factura_raw += coordenada_a_texto_raw(4.45, 8.00, "30 DÍAS")
-    factura_raw += coordenada_a_texto_raw(4.45, 8.50, "María Pérez")
-    factura_raw += coordenada_a_texto_raw(7.62, 6.40, "123456-7")
-    factura_raw += coordenada_a_texto_raw(7.62, 7.50, "REM-00123")
-    factura_raw += coordenada_a_texto_raw(11.43, 6.40, "0614-250786-102-3")
-    factura_raw += coordenada_a_texto_raw(12.07, 7.50, "ORD-789")
-    factura_raw += coordenada_a_texto_raw(11.43, 8.00, "Distribuidora S.A.")
-    factura_raw += coordenada_a_texto_raw(11.75, 8.50, "2025-05-30")
+    prev_y_cm = 0.0
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 4.80, "Francisco López")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 5.40, "Col. Escalón, San Salvador")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 6.40, "2025-06-12")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 6.90, "Comercio")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.81, 7.50, "2025-06-10")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 8.00, "30 DÍAS")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 4.45, 8.50, "María Pérez")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 7.62, 6.40, "123456-7")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 7.62, 7.50, "REM-00123")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.43, 6.40, "0614-250786-102-3")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 12.07, 7.50, "ORD-789")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.43, 8.00, "Distribuidora S.A.")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.75, 8.50, "2025-05-30")
+    factura_raw += line
     productos = [
         ("2", "Paracetamol 500mg", "0.50", "0.00", "0.00", "1.00"),
         ("1", "Ibuprofeno 200mg", "0.75", "0.00", "0.00", "0.75"),
@@ -166,20 +214,34 @@ def vista_previa_factura():
     row_height = 0.6
     for i, (cantidad, descripcion, precio, exentas, no_sujetas, gravadas) in enumerate(productos):
         y = y_base + i * row_height
-        factura_raw += coordenada_a_texto_raw(2.22, y, cantidad)
-        factura_raw += coordenada_a_texto_raw(3.90, y, descripcion)
-        factura_raw += coordenada_a_texto_raw(9.21, y, precio)
-        factura_raw += coordenada_a_texto_raw(11.11, y, exentas)
-        factura_raw += coordenada_a_texto_raw(12.70, y, no_sujetas)
-        factura_raw += coordenada_a_texto_raw(14.10, y, gravadas)
-    factura_raw += coordenada_a_texto_raw(2.22, 22.23, "Cuatro dólares con cincuenta centavos")
-    factura_raw += coordenada_a_texto_raw(14.10, 21.59, "3.55")
-    factura_raw += coordenada_a_texto_raw(14.10, 22.23, "0.46")
-    factura_raw += coordenada_a_texto_raw(14.10, 22.86, "4.01")
-    factura_raw += coordenada_a_texto_raw(14.10, 23.45, "0.00")
-    factura_raw += coordenada_a_texto_raw(14.10, 24.00, "0.00")
-    factura_raw += coordenada_a_texto_raw(14.10, 24.60, "0.00")
-    factura_raw += coordenada_a_texto_raw(14.10, 25.08, "4.01")
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 2.22, y, cantidad)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 3.90, y, descripcion)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 9.21, y, precio)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 11.11, y, exentas)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 12.70, y, no_sujetas)
+        factura_raw += line
+        line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, y, gravadas)
+        factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 2.22, 22.23, "Cuatro dólares con cincuenta centavos")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 21.59, "3.55")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 22.23, "0.46")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 22.86, "4.01")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 23.45, "0.00")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 24.00, "0.00")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 24.60, "0.00")
+    factura_raw += line
+    line, prev_y_cm = coordenada_a_texto_raw(prev_y_cm, 14.10, 25.08, "4.01")
+    factura_raw += line
     preview = tk.Toplevel()
     preview.title("Vista previa de factura (RAW coordenadas)")
     text = tk.Text(preview, wrap="none", font=("Courier New", 10))
