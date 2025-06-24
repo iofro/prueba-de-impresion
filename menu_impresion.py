@@ -223,7 +223,7 @@ def imprimir_factura_win32ui(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        if font:
+        if font and hasattr(font, "DeleteObject"):
             font.DeleteObject()
         dc.EndPage()
         dc.EndDoc()
@@ -303,7 +303,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        if font:
+        if font and hasattr(font, "DeleteObject"):
             font.DeleteObject()
 
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
@@ -408,7 +408,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        if font:
+        if font and hasattr(font, "DeleteObject"):
             font.DeleteObject()
 
         draw(0, 10.10, "Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
@@ -511,7 +511,7 @@ def imprimir_factura_win32ui_crlf(printer_name):
 
         if old_font:
             dc.SelectObject(old_font)
-        if font:
+        if font and hasattr(font, "DeleteObject"):
             font.DeleteObject()
 
         draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
