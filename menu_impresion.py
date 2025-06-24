@@ -46,7 +46,7 @@ def coordenada_a_texto_raw(prev_y_cm, x_cm, y_cm, texto, ancho_char_cm=0.25, alt
 
 def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
-    return int(valor_cm * 567)
+    return round(valor_cm * 566.93)
 
 def activar_modo_slip(printer_name: str) -> bool:
     """Activa el modo SLIP4 en la impresora para usar la bandeja de formularios."""
