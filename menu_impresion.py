@@ -127,10 +127,9 @@ def imprimir_factura_raw(printer_name):
     slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
-        # Enviar comando de modo slip antes de iniciar la página
-        win32print.WritePrinter(hprinter, slip_cmd)
         win32print.StartDocPrinter(hprinter, 1, ("Factura RAW", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
+        win32print.WritePrinter(hprinter, slip_cmd)
         win32print.WritePrinter(hprinter, factura_raw.encode("utf-8"))
         win32print.EndPagePrinter(hprinter)
         win32print.EndDocPrinter(hprinter)
@@ -148,9 +147,9 @@ def imprimir_factura_raw_simple(printer_name):
     slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
-        win32print.WritePrinter(hprinter, slip_cmd)
         win32print.StartDocPrinter(hprinter, 1, ("Factura RAW Simple", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
+        win32print.WritePrinter(hprinter, slip_cmd)
         win32print.WritePrinter(hprinter, factura.encode("utf-8"))
         win32print.EndPagePrinter(hprinter)
         win32print.EndDocPrinter(hprinter)
@@ -175,9 +174,9 @@ def imprimir_factura_raw_tabs(printer_name):
     slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
-        win32print.WritePrinter(hprinter, slip_cmd)
         win32print.StartDocPrinter(hprinter, 1, ("Factura RAW Tabs", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
+        win32print.WritePrinter(hprinter, slip_cmd)
         win32print.WritePrinter(hprinter, factura.encode("utf-8"))
         win32print.EndPagePrinter(hprinter)
         win32print.EndDocPrinter(hprinter)
@@ -202,9 +201,9 @@ def imprimir_factura_raw_crlf(printer_name):
     slip_cmd = SLIP4_MODE
     try:
         hprinter = win32print.OpenPrinter(printer_name)
-        win32print.WritePrinter(hprinter, slip_cmd)
         win32print.StartDocPrinter(hprinter, 1, ("Factura RAW CRLF", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
+        win32print.WritePrinter(hprinter, slip_cmd)
         win32print.WritePrinter(hprinter, factura.encode("utf-8"))
         win32print.EndPagePrinter(hprinter)
         win32print.EndDocPrinter(hprinter)
@@ -223,8 +222,11 @@ def imprimir_factura_win32ui(printer_name):
         return
     try:
         hprinter = win32print.OpenPrinter(printer_name)
-        # Seleccionar modo slip 4 para la impresora
+        win32print.StartDocPrinter(hprinter, 1, ("Factura win32ui", None, "RAW"))
+        win32print.StartPagePrinter(hprinter)
         win32print.WritePrinter(hprinter, SLIP4_MODE)
+        win32print.EndPagePrinter(hprinter)
+        win32print.EndDocPrinter(hprinter)
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
