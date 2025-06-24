@@ -47,7 +47,7 @@ def coordenada_a_texto_raw(prev_y_cm, x_cm, y_cm, texto, ancho_char_cm=0.25, alt
 
 def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
-    return int(valor_cm * 567)
+    return round(valor_cm * 566.93)
 
 def imprimir_factura_raw(printer_name):
     """Imprime una factura de prueba directamente en la impresora RAW."""
