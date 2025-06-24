@@ -206,34 +206,36 @@ def imprimir_segun_metodo():
     else:
         messagebox.showinfo("Info", f"Método '{metodo}' aún no implementado.")
 
-root = tk.Tk()
-root.title("Menú de Métodos de Impresión de Prueba")
-root.geometry("420x220")
 
-frame = ttk.Frame(root, padding=20)
-frame.pack(fill=tk.BOTH, expand=True)
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("Menú de Métodos de Impresión de Prueba")
+    root.geometry("420x220")
 
-# Selección de método
-ttk.Label(frame, text="Selecciona el método de impresión de prueba:").pack(anchor=tk.W)
-metodo_var = tk.StringVar(value="RAW (coordenadas y win32print)")
-metodos = [
-    "RAW (coordenadas y win32print)",
-    "RAW simple (alineado por espacios)",
-    "RAW con tabulaciones (\t)",
-    "RAW con CRLF (\r\n)",
-    "Vista previa (solo mostrar)"
-]
-metodo_menu = ttk.Combobox(frame, textvariable=metodo_var, values=metodos, state="readonly")
-metodo_menu.pack(fill=tk.X, pady=5)
+    frame = ttk.Frame(root, padding=20)
+    frame.pack(fill=tk.BOTH, expand=True)
 
-# Entrada de nombre de impresora
-ttk.Label(frame, text="Nombre de la impresora:").pack(anchor=tk.W, pady=(10,0))
-printer_entry = ttk.Entry(frame)
-printer_entry.pack(fill=tk.X, pady=5)
-printer_entry.insert(0, "EPSON TM-U950")
+    # Selección de método
+    ttk.Label(frame, text="Selecciona el método de impresión de prueba:").pack(anchor=tk.W)
+    metodo_var = tk.StringVar(value="RAW (coordenadas y win32print)")
+    metodos = [
+        "RAW (coordenadas y win32print)",
+        "RAW simple (alineado por espacios)",
+        "RAW con tabulaciones (\t)",
+        "RAW con CRLF (\r\n)",
+        "Vista previa (solo mostrar)"
+    ]
+    metodo_menu = ttk.Combobox(frame, textvariable=metodo_var, values=metodos, state="readonly")
+    metodo_menu.pack(fill=tk.X, pady=5)
 
-# Botón de imprimir
-imprimir_btn = ttk.Button(frame, text="Imprimir factura de prueba", command=imprimir_segun_metodo)
-imprimir_btn.pack(pady=15)
+    # Entrada de nombre de impresora
+    ttk.Label(frame, text="Nombre de la impresora:").pack(anchor=tk.W, pady=(10,0))
+    printer_entry = ttk.Entry(frame)
+    printer_entry.pack(fill=tk.X, pady=5)
+    printer_entry.insert(0, "EPSON TM-U950")
 
-root.mainloop()
+    # Botón de imprimir
+    imprimir_btn = ttk.Button(frame, text="Imprimir factura de prueba", command=imprimir_segun_metodo)
+    imprimir_btn.pack(pady=15)
+
+    root.mainloop()
