@@ -251,7 +251,7 @@ def vista_previa_factura():
 
 def imprimir_segun_metodo():
     metodo = metodo_var.get()
-    printer_name = printer_entry.get()
+    printer_name = printer_var.get()
     if not printer_name:
         messagebox.showwarning("Advertencia", "Debes ingresar el nombre de la impresora.")
         return
@@ -280,21 +280,37 @@ if __name__ == "__main__":
     # Selección de método
     ttk.Label(frame, text="Selecciona el método de impresión de prueba:").pack(anchor=tk.W)
     metodo_var = tk.StringVar(value="RAW (coordenadas y win32print)")
+    # Ordenados según la probabilidad de funcionar con EPSON TM-U950
     metodos = [
         "RAW (coordenadas y win32print)",
+        "RAW con CRLF (\\r\\n)",
+        "RAW con tabulaciones (\\t)",
         "RAW simple (alineado por espacios)",
-        "RAW con tabulaciones (\t)",
-        "RAW con CRLF (\r\n)",
         "Vista previa (solo mostrar)"
     ]
     metodo_menu = ttk.Combobox(frame, textvariable=metodo_var, values=metodos, state="readonly")
     metodo_menu.pack(fill=tk.X, pady=5)
 
-    # Entrada de nombre de impresora
+    # Selección de impresora disponible (offline o desconectada también)
     ttk.Label(frame, text="Nombre de la impresora:").pack(anchor=tk.W, pady=(10,0))
-    printer_entry = ttk.Entry(frame)
-    printer_entry.pack(fill=tk.X, pady=5)
-    printer_entry.insert(0, "EPSON TM-U950")
+    def obtener_impresoras():
+        if win32print:
+            flags = win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS
+            try:
+                printers = win32print.EnumPrinters(flags)
+                return [p[2] for p in printers]
+            except Exception:
+                return []
+        return []
+
+    printer_var = tk.StringVar()
+    printer_list = obtener_impresoras()
+    if printer_list:
+        printer_var.set(printer_list[0])
+    else:
+        printer_var.set("EPSON TM-U950")
+    printer_menu = ttk.Combobox(frame, textvariable=printer_var, values=printer_list, state="readonly")
+    printer_menu.pack(fill=tk.X, pady=5)
 
     # Botón de imprimir
     imprimir_btn = ttk.Button(frame, text="Imprimir factura de prueba", command=imprimir_segun_metodo)
