@@ -6,7 +6,7 @@ from tkinter import ttk, messagebox
 DEFAULT_FONT_NAME = "Dot Matrix"
 # Escala horizontal para la fuente. Un valor menor a ``1.0`` estrecha el texto
 # sin modificar la altura.
-DEFAULT_FONT_WIDTH_SCALE = 0.8
+DEFAULT_FONT_WIDTH_SCALE = 0.4
 
 # Intenta importar win32print, si no está disponible muestra un error al intentar imprimir
 try:
