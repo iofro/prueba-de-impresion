@@ -553,6 +553,53 @@ def imprimir_factura_win32ui_crlf(printer_name):
         messagebox.showerror("Error de impresión", str(e))
 
 
+def imprimir_factura_programa(printer_name):
+    """Imprime la factura siguiendo el estilo del programa Visual FoxPro."""
+    if win32print is None:
+        messagebox.showerror(
+            "Error",
+            "win32print no está disponible. Instala pywin32 en Windows.",
+        )
+        return
+    try:
+        encabezado, productos, totales = generar_factura_datos()
+        hprinter = win32print.OpenPrinter(printer_name)
+        win32print.StartDocPrinter(hprinter, 1, ("Factura programa", None, "RAW"))
+        win32print.StartPagePrinter(hprinter)
+        win32print.WritePrinter(hprinter, SLIP4_MODE)
+
+        lineas = []
+        lineas.append(f"Cliente: {encabezado['cliente']}\r\n")
+        lineas.append(f"Dirección: {encabezado['direccion']}\r\n")
+        lineas.append(f"Fecha: {encabezado['fecha']}\r\n")
+        lineas.append(f"Giro: {encabezado['giro']}\r\n")
+        lineas.append(f"Condición de pago: {encabezado['condicion_pago']}\r\n")
+        lineas.append(f"Vendedor: {encabezado['vendedor']}\r\n")
+        lineas.append("\r\n")
+        lineas.append("Cant Descripción                 P.Unit  Exe  NoS  Grav\r\n")
+        for cant, desc, prec, ex, ns, grav in productos:
+            linea = f"{cant:<4}{desc:<25}{prec:>7} {ex:>5} {ns:>5} {grav:>5}\r\n"
+            lineas.append(linea)
+        lineas.append("\r\n")
+        lineas.append(f"Sumas: {totales['sumas']}\r\n")
+        lineas.append(f"IVA: {totales['iva']}\r\n")
+        lineas.append(f"Subtotal: {totales['subtotal']}\r\n")
+        lineas.append(f"IVA retenido: {totales['iva_retenido']}\r\n")
+        lineas.append(f"Ventas exentas: {totales['ventas_exentas']}\r\n")
+        lineas.append(f"Ventas no sujetas: {totales['no_sujetas']}\r\n")
+        lineas.append(f"Venta total: {totales['total']}\r\n")
+
+        salida = "".join(lineas).encode("latin-1", errors="replace")
+        win32print.WritePrinter(hprinter, salida)
+
+        win32print.EndPagePrinter(hprinter)
+        win32print.EndDocPrinter(hprinter)
+        win32print.ClosePrinter(hprinter)
+        messagebox.showinfo("Éxito", "Factura enviada a la impresora.")
+    except Exception as e:
+        messagebox.showerror("Error de impresión", str(e))
+
+
 def imprimir_segun_metodo():
     metodo = metodo_var.get()
     printer_name = printer_var.get()
@@ -567,6 +614,8 @@ def imprimir_segun_metodo():
         imprimir_factura_win32ui_tabs(printer_name)
     elif metodo == "win32ui (alineado con CRLF)":
         imprimir_factura_win32ui_crlf(printer_name)
+    elif metodo == "impresión de programa":
+        imprimir_factura_programa(printer_name)
     else:
         messagebox.showinfo("Info", f"Método '{metodo}' aún no implementado.")
 
@@ -586,7 +635,8 @@ if __name__ == "__main__":
         "win32ui (coordenadas absolutas)",
         "win32ui (alineado por espacios)",
         "win32ui (alineado con tabulaciones)",
-        "win32ui (alineado con CRLF)"
+        "win32ui (alineado con CRLF)",
+        "impresión de programa"
     ]
     metodo_menu = ttk.Combobox(frame, textvariable=metodo_var, values=metodos, state="readonly")
     metodo_menu.pack(fill=tk.X, pady=5)
