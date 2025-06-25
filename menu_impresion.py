@@ -381,8 +381,9 @@ def imprimir_factura_win32ui_tabs(printer_name):
             x_ul, y_ul = convertir_origen_inferior_derecho(x_br, y_br)
             dc.TextOut(cm_a_twips(x_ul), -cm_a_twips(y_ul), texto)
 
-        # Encabezado de la factura en sus coordenadas
-        for campo, (x, y) in HEADER_COORDS.items():
+        # Encabezado de la factura en sus coordenadas de origen
+        # inferior derecho
+        for campo, (x, y) in HEADER_COORDS_BR.items():
             draw(x, y, encabezado.get(campo, ""))
 
         # Encabezado de la tabla de productos en sus coordenadas
