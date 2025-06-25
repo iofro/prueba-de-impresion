@@ -349,8 +349,6 @@ def imprimir_factura_win32ui_tabs(printer_name):
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
 
-        offset_x = 1.0  # aproximado a un tab extra hacia la derecha
-
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
@@ -358,16 +356,39 @@ def imprimir_factura_win32ui_tabs(printer_name):
         for campo, (x, y) in HEADER_COORDS.items():
             draw(x, y, encabezado.get(campo, ""))
 
-        # Encabezado de la tabla de productos en una sola cadena con tabulaciones
-        header_line = (
-              "Cantidad	Descripción	Precio Unitario	V. Exentas	V. No Sujetas	V. Gravadas"
+        # Encabezado de la tabla de productos en sus coordenadas
+        draw(PRODUCT_HEADER["cantidad"][0], PRODUCT_HEADER["cantidad"][1], "Cantidad")
+        draw(PRODUCT_HEADER["descripcion"][0], PRODUCT_HEADER["descripcion"][1], "Descripci\u00f3n")
+        draw(
+            PRODUCT_HEADER["precio_unitario"][0],
+            PRODUCT_HEADER["precio_unitario"][1],
+            "Precio Unitario",
         )
-        draw(PRODUCT_HEADER["cantidad"][0] + offset_x, PRODUCT_HEADER["cantidad"][1], header_line)
-        # Filas de productos usando tabulaciones para separar cada columna
+        draw(
+            PRODUCT_HEADER["ventas_exentas"][0],
+            PRODUCT_HEADER["ventas_exentas"][1],
+            "V. Exentas",
+        )
+        draw(
+            PRODUCT_HEADER["ventas_no_sujetas"][0],
+            PRODUCT_HEADER["ventas_no_sujetas"][1],
+            "V. No Sujetas",
+        )
+        draw(
+            PRODUCT_HEADER["ventas_gravadas"][0],
+            PRODUCT_HEADER["ventas_gravadas"][1],
+            "V. Gravadas",
+        )
+
+        # Filas de productos usando tabulaciones para separar texto pero con coordenadas fijas
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
             y_line = PRODUCT_ROW_START_Y + i * ROW_HEIGHT
-            row_line = "	".join([cant, desc, prec, ex, ns, grav])
-            draw(PRODUCT_HEADER["cantidad"][0] + offset_x, y_line, row_line)
+            draw(PRODUCT_HEADER["cantidad"][0], y_line, cant)
+            draw(PRODUCT_HEADER["descripcion"][0], y_line, desc)
+            draw(PRODUCT_HEADER["precio_unitario"][0], y_line, prec)
+            draw(PRODUCT_HEADER["ventas_exentas"][0], y_line, ex)
+            draw(PRODUCT_HEADER["ventas_no_sujetas"][0], y_line, ns)
+            draw(PRODUCT_HEADER["ventas_gravadas"][0], y_line, grav)
 
         # Totales en sus coordenadas
         for campo, (x, y) in TOTALS_COORDS.items():
