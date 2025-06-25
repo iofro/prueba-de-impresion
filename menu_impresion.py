@@ -32,6 +32,15 @@ def cm_a_twips(valor_cm: float) -> int:
     """Convierte cent\u00edmetros a TWIPS (1/1440 pulgadas)."""
     return round(valor_cm * 566.93)
 
+# Dimensiones de la p\u00e1gina (ancho x alto) en cent\u00edmetros
+PAGE_WIDTH_CM = 16.6
+PAGE_HEIGHT_CM = 27.5
+
+
+def invertir_coordenadas(x_cm: float, y_cm: float) -> tuple[float, float]:
+    """Devuelve las coordenadas invertidas desde la esquina inferior derecha."""
+    return PAGE_WIDTH_CM - x_cm, PAGE_HEIGHT_CM - y_cm
+
 # Coordenadas est\u00e1ticas para la factura (en cent\u00edmetros)
 HEADER_COORDS = {
     "cliente": (3.55, 4.80),
@@ -221,7 +230,8 @@ def imprimir_factura_win32ui(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+            x_inv, y_inv = invertir_coordenadas(x_cm, y_cm)
+            dc.TextOut(cm_a_twips(x_inv), -cm_a_twips(y_inv), texto)
 
         # Encabezado (solo datos)
         for campo, (x, y) in HEADER_COORDS.items():
@@ -287,7 +297,8 @@ def imprimir_factura_win32ui_espacios(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+            x_inv, y_inv = invertir_coordenadas(x_cm, y_cm)
+            dc.TextOut(cm_a_twips(x_inv), -cm_a_twips(y_inv), texto)
 
         # Dibujar encabezado en las posiciones indicadas
         for campo, (x, y) in HEADER_COORDS.items():
@@ -350,7 +361,8 @@ def imprimir_factura_win32ui_tabs(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+            x_inv, y_inv = invertir_coordenadas(x_cm, y_cm)
+            dc.TextOut(cm_a_twips(x_inv), -cm_a_twips(y_inv), texto)
 
         # Encabezado de la factura en sus coordenadas
         for campo, (x, y) in HEADER_COORDS.items():
@@ -433,7 +445,8 @@ def imprimir_factura_win32ui_crlf(printer_name):
         font, old_font = seleccionar_fuente(dc, 12)
 
         def draw(x_cm, y_cm, texto):
-            dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
+            x_inv, y_inv = invertir_coordenadas(x_cm, y_cm)
+            dc.TextOut(cm_a_twips(x_inv), -cm_a_twips(y_inv), texto)
 
         header_order = [
             "cliente",
