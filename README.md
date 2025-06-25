@@ -47,6 +47,10 @@ fuentes incluye el driver de tu impresora (por ejemplo, "EPSON Draft 10cpi" o
 "EPSON Roman 12cpi") e indica el nombre exacto en la constante
 `DEFAULT_FONT_NAME` de `menu_impresion.py`.
 
+Si la fuente aparece demasiado ancha para las coordenadas que manejas,
+ajusta el valor de `DEFAULT_FONT_WIDTH_SCALE` (por ejemplo `0.8`) para
+estrecharla horizontalmente sin modificar su altura.
+
 ## Configuración de la página
 
 La función `configurar_mapeo` asume que la factura ocupa un área de

@@ -4,6 +4,9 @@ from tkinter import ttk, messagebox
 # Fuente predeterminada para las impresiones. Cambia el valor si tu impresora
 # ofrece un nombre distinto para su tipo de letra de matriz de puntos.
 DEFAULT_FONT_NAME = "Dot Matrix"
+# Escala horizontal para la fuente. Un valor menor a ``1.0`` estrecha el texto
+# sin modificar la altura.
+DEFAULT_FONT_WIDTH_SCALE = 0.8
 
 # Intenta importar win32print, si no está disponible muestra un error al intentar imprimir
 try:
@@ -70,17 +73,26 @@ PRODUCT_ROW_START_Y = 10.70
 ROW_HEIGHT = 0.6
 
 
-def seleccionar_fuente(dc, puntos=12, nombre=DEFAULT_FONT_NAME):
-    """Crea y selecciona en el DC una fuente *nombre* de *puntos* puntos.
+def seleccionar_fuente(
+    dc,
+    puntos: int = 12,
+    nombre: str = DEFAULT_FONT_NAME,
+    escala_ancho: float = DEFAULT_FONT_WIDTH_SCALE,
+):
+    """Crea y selecciona en el DC una fuente con las dimensiones indicadas.
 
-    Si la fuente no está disponible se utiliza ``Courier New`` como alternativa.
+    ``escala_ancho`` permite modificar la proporción horizontal del texto sin
+    afectar su altura. Un valor menor que ``1.0`` hará que la fuente sea más
+    estrecha.
     """
     if win32ui is None:
         return None, None
+    alto = -puntos * 20
+    ancho = 0 if escala_ancho == 1.0 else int(abs(alto) * escala_ancho)
     try:
-        font = win32ui.CreateFont({"name": nombre, "height": -puntos * 20})
+        font = win32ui.CreateFont({"name": nombre, "height": alto, "width": ancho})
     except Exception:
-        font = win32ui.CreateFont({"name": "Courier New", "height": -puntos * 20})
+        font = win32ui.CreateFont({"name": "Courier New", "height": alto, "width": ancho})
     old = dc.SelectObject(font)
     return font, old
 
