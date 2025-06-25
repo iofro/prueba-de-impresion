@@ -152,36 +152,34 @@ def generar_factura_datos():
     """
 
     encabezado = {
-        "cliente": "Francisco L\u00f3pez",
-        "direccion": "Col. Escal\u00f3n, San Salvador",
-        "fecha": "2025-06-12",
-        "giro": "Comercio",
-        "fecha_remision": "2025-06-10",
-        "condicion_pago": "30 D\u00cdAS",
-        "vendedor": "Mar\u00eda P\u00e9rez",
-        "nrc": "123456-7",
-        "no_rem": "REM-00123",
-        "nit": "0614-250786-102-3",
-        "orden_no": "ORD-789",
-        "venta_cuenta_de": "Distribuidora S.A.",
-        "fecha_nota_ant": "2025-05-30",
+        "cliente": "Ferreter\u00eda El Martillo S.A. de C.V.",
+        "direccion": "Calle El Progreso #23, San Miguel",
+        "fecha": "22/06/2025",
+        "giro": "Venta de materiales de construcci\u00f3n",
+        "fecha_remision": "21/06/2025",
+        "condicion_pago": "Cr\u00e9dito 30 d\u00edas",
+        "vendedor": "Mar\u00eda L\u00f3pez",
+        "nrc": "129847-3",
+        "no_rem": "REM-4567",
+        "nit": "0614-150385-101-8",
+        "orden_no": "ORD-98231",
+        "venta_cuenta_de": "Constructora Innovar S.A. de C.V.",
+        "fecha_nota_ant": "20/06/2025",
     }
 
     productos = [
-        ("2", "Paracetamol 500mg", "0.50", "0.00", "0.00", "1.00"),
-        ("1", "Ibuprofeno 200mg", "0.75", "0.00", "0.00", "0.75"),
-        ("3", "Vitamina C 1000mg", "0.60", "0.00", "0.00", "1.80"),
+        ("10", "Bolsa de cemento gris", "6.50", "0.00", "0.00", "65.00"),
     ]
 
     totales = {
-        "literal": "Cuatro dólares con cincuenta centavos",
-        "sumas": "3.55",
-        "iva": "0.46",
-        "subtotal": "4.01",
+        "literal": "Sesenta y cinco dólares con 00/100",
+        "sumas": "65.00",
+        "iva": "8.45",
+        "subtotal": "73.45",
         "iva_retenido": "0.00",
         "no_sujetas": "0.00",
         "ventas_exentas": "0.00",
-        "total": "4.01",
+        "total": "73.45",
     }
 
     return encabezado, productos, totales
@@ -385,73 +383,33 @@ def imprimir_factura_win32ui_tabs(printer_name):
         def draw(x_cm, y_cm, texto):
             dc.TextOut(cm_a_twips(x_cm), -cm_a_twips(y_cm), texto)
 
-        header_order = [
-            "cliente",
-            "direccion",
-            "fecha",
-            "giro",
-            "fecha_remision",
-            "condicion_pago",
-            "vendedor",
-            "nrc",
-            "no_rem",
-            "nit",
-            "orden_no",
-            "venta_cuenta_de",
-            "fecha_nota_ant",
-        ]
+        # Encabezado de la factura en sus coordenadas
+        for campo, (x, y) in HEADER_COORDS.items():
+            draw(x, y, encabezado.get(campo, ""))
 
+        # Encabezado de la tabla de productos usando tabulaciones
+        draw(
+            PRODUCT_HEADER["cantidad"][0],
+            PRODUCT_HEADER["cantidad"][1],
+            "Cantidad\tDescripci\u00f3n\tPrecio Unitario\tV. Exentas\tV. No Sujetas\tV. Gravadas",
+        )
 
-        lines = [encabezado.get(campo, "") for campo in header_order]
-        lines.append("")
-        lines.append("Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
-        for cant, desc, prec, ex, ns, grav in productos:
-            lines.append(f"{cant}\t{desc}\t\t{prec}\t{ex}\t{ns}\t{grav}")
-        lines.append("")
-        lines.append(totales["literal"])
-        lines.append(f"Sumas:\t{totales['sumas']}")
-        lines.append(f"13% IVA:\t{totales['iva']}")
-        lines.append(f"Subtotal:\t{totales['subtotal']}")
-        lines.append(f"IVA retenido:\t{totales['iva_retenido']}")
-        lines.append(f"Vtas no sujetas:\t{totales['no_sujetas']}")
-        lines.append(f"Ventas exentas:\t{totales['ventas_exentas']}")
-        lines.append(f"Venta total:\t{totales['total']}")
+        for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
+            y_line = PRODUCT_ROW_START_Y + i * ROW_HEIGHT
+            draw(
+                PRODUCT_HEADER["cantidad"][0],
+                y_line,
+                f"{cant}\t{desc}\t{prec}\t{ex}\t{ns}\t{grav}",
+            )
 
-        y = 4.8
-        line_height = 0.6
-        for campo in header_order:
-            draw(0, y, encabezado.get(campo, ""))
-            y += line_height
-
+        # Totales en sus coordenadas
+        for campo, (x, y) in TOTALS_COORDS.items():
+            draw(x, y, totales.get(campo, ""))
 
         if old_font:
             dc.SelectObject(old_font)
         if font:
             eliminar_fuente(font)
-
-        draw(0, 10.10, "Cant\tDescripción\t\t\tPrecio\tExentas\tNoSuj\tGravadas")
-
-        y_base = 10.70
-        for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
-            y_line = y_base + i * line_height
-            draw(0, y_line, f"{cant}\t{desc}\t\t{prec}\t{ex}\t{ns}\t{grav}")
-
-        y = y_base + len(productos) * line_height + line_height
-        draw(0, y, totales["literal"])
-        y += line_height
-        draw(0, y, f"Sumas:\t{totales['sumas']}")
-        y += line_height
-        draw(0, y, f"IVA:\t{totales['iva']}")
-        y += line_height
-        draw(0, y, f"Subtotal:\t{totales['subtotal']}")
-        y += line_height
-        draw(0, y, f"IVA retenido:\t{totales['iva_retenido']}")
-        y += line_height
-        draw(0, y, f"Vtas no sujetas:\t{totales['no_sujetas']}")
-        y += line_height
-        draw(0, y, f"Ventas exentas:\t{totales['ventas_exentas']}")
-        y += line_height
-        draw(0, y, f"Venta total:\t{totales['total']}")
 
         dc.EndPage()
         dc.EndDoc()
