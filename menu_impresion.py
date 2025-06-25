@@ -37,8 +37,13 @@ PAGE_WIDTH_CM = 16.6
 PAGE_HEIGHT_CM = 27.5
 
 
-def invertir_coordenadas(x_cm: float, y_cm: float) -> tuple[float, float]:
-    """Devuelve las coordenadas invertidas desde la esquina inferior derecha."""
+def convertir_origen_inferior_derecho(x_cm: float, y_cm: float) -> tuple[float, float]:
+    """Convierte coordenadas con origen en la esquina inferior derecha.
+
+    Retorna la pareja equivalente cuyo origen está en la esquina superior
+    izquierda. El mismo cálculo sirve a la inversa debido a la simetría de la
+    página.
+    """
     return PAGE_WIDTH_CM - x_cm, PAGE_HEIGHT_CM - y_cm
 
 # Coordenadas est\u00e1ticas para la factura (en cent\u00edmetros)
@@ -80,6 +85,18 @@ TOTALS_COORDS = {
 
 PRODUCT_ROW_START_Y = 10.70
 ROW_HEIGHT = 0.6
+
+# Versiones equivalentes con origen en la esquina inferior derecha
+HEADER_COORDS_BR = {
+    k: convertir_origen_inferior_derecho(x, y) for k, (x, y) in HEADER_COORDS.items()
+}
+PRODUCT_HEADER_BR = {
+    k: convertir_origen_inferior_derecho(x, y) for k, (x, y) in PRODUCT_HEADER.items()
+}
+TOTALS_COORDS_BR = {
+    k: convertir_origen_inferior_derecho(x, y) for k, (x, y) in TOTALS_COORDS.items()
+}
+PRODUCT_ROW_START_Y_BR = convertir_origen_inferior_derecho(0, PRODUCT_ROW_START_Y)[1]
 
 
 def seleccionar_fuente(
@@ -229,34 +246,34 @@ def imprimir_factura_win32ui(printer_name):
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
 
-        def draw(x_cm, y_cm, texto):
-            x_inv, y_inv = invertir_coordenadas(x_cm, y_cm)
-            dc.TextOut(cm_a_twips(x_inv), -cm_a_twips(y_inv), texto)
+        def draw(x_br, y_br, texto):
+            x_ul, y_ul = convertir_origen_inferior_derecho(x_br, y_br)
+            dc.TextOut(cm_a_twips(x_ul), -cm_a_twips(y_ul), texto)
 
         # Encabezado (solo datos)
-        for campo, (x, y) in HEADER_COORDS.items():
+        for campo, (x, y) in HEADER_COORDS_BR.items():
             draw(x, y, encabezado.get(campo, ""))
 
         # Encabezado de la tabla de productos
-        draw(PRODUCT_HEADER["cantidad"][0], PRODUCT_HEADER["cantidad"][1], "Cantidad")
-        draw(PRODUCT_HEADER["descripcion"][0], PRODUCT_HEADER["descripcion"][1], "Descripción")
-        draw(PRODUCT_HEADER["precio_unitario"][0], PRODUCT_HEADER["precio_unitario"][1], "Precio unitario")
-        draw(PRODUCT_HEADER["ventas_exentas"][0], PRODUCT_HEADER["ventas_exentas"][1], "Ventas exentas")
-        draw(PRODUCT_HEADER["ventas_no_sujetas"][0], PRODUCT_HEADER["ventas_no_sujetas"][1], "Ventas no sujetas")
-        draw(PRODUCT_HEADER["ventas_gravadas"][0], PRODUCT_HEADER["ventas_gravadas"][1], "Ventas gravadas")
+        draw(PRODUCT_HEADER_BR["cantidad"][0], PRODUCT_HEADER_BR["cantidad"][1], "Cantidad")
+        draw(PRODUCT_HEADER_BR["descripcion"][0], PRODUCT_HEADER_BR["descripcion"][1], "Descripción")
+        draw(PRODUCT_HEADER_BR["precio_unitario"][0], PRODUCT_HEADER_BR["precio_unitario"][1], "Precio unitario")
+        draw(PRODUCT_HEADER_BR["ventas_exentas"][0], PRODUCT_HEADER_BR["ventas_exentas"][1], "Ventas exentas")
+        draw(PRODUCT_HEADER_BR["ventas_no_sujetas"][0], PRODUCT_HEADER_BR["ventas_no_sujetas"][1], "Ventas no sujetas")
+        draw(PRODUCT_HEADER_BR["ventas_gravadas"][0], PRODUCT_HEADER_BR["ventas_gravadas"][1], "Ventas gravadas")
 
         # Productos
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
-            y = PRODUCT_ROW_START_Y + i * ROW_HEIGHT
-            draw(PRODUCT_HEADER["cantidad"][0], y, cant)
-            draw(PRODUCT_HEADER["descripcion"][0], y, desc)
-            draw(PRODUCT_HEADER["precio_unitario"][0], y, prec)
-            draw(PRODUCT_HEADER["ventas_exentas"][0], y, ex)
-            draw(PRODUCT_HEADER["ventas_no_sujetas"][0], y, ns)
-            draw(PRODUCT_HEADER["ventas_gravadas"][0], y, grav)
+            y = PRODUCT_ROW_START_Y_BR - i * ROW_HEIGHT
+            draw(PRODUCT_HEADER_BR["cantidad"][0], y, cant)
+            draw(PRODUCT_HEADER_BR["descripcion"][0], y, desc)
+            draw(PRODUCT_HEADER_BR["precio_unitario"][0], y, prec)
+            draw(PRODUCT_HEADER_BR["ventas_exentas"][0], y, ex)
+            draw(PRODUCT_HEADER_BR["ventas_no_sujetas"][0], y, ns)
+            draw(PRODUCT_HEADER_BR["ventas_gravadas"][0], y, grav)
 
         # Totales
-        for campo, (x, y) in TOTALS_COORDS.items():
+        for campo, (x, y) in TOTALS_COORDS_BR.items():
             draw(x, y, totales.get(campo, ""))
 
         if old_font:
@@ -296,29 +313,29 @@ def imprimir_factura_win32ui_espacios(printer_name):
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
 
-        def draw(x_cm, y_cm, texto):
-            x_inv, y_inv = invertir_coordenadas(x_cm, y_cm)
-            dc.TextOut(cm_a_twips(x_inv), -cm_a_twips(y_inv), texto)
+        def draw(x_br, y_br, texto):
+            x_ul, y_ul = convertir_origen_inferior_derecho(x_br, y_br)
+            dc.TextOut(cm_a_twips(x_ul), -cm_a_twips(y_ul), texto)
 
         # Dibujar encabezado en las posiciones indicadas
-        for campo, (x, y) in HEADER_COORDS.items():
+        for campo, (x, y) in HEADER_COORDS_BR.items():
             draw(x, y, encabezado.get(campo, ""))
 
         # Encabezado de columnas utilizando espacios
         draw(
-            PRODUCT_HEADER["cantidad"][0],
-            PRODUCT_HEADER["cantidad"][1],
+            PRODUCT_HEADER_BR["cantidad"][0],
+            PRODUCT_HEADER_BR["cantidad"][1],
             "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas",
         )
 
         # Filas de productos
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
-            y_line = PRODUCT_ROW_START_Y + i * ROW_HEIGHT
+            y_line = PRODUCT_ROW_START_Y_BR - i * ROW_HEIGHT
             linea = f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}"
-            draw(PRODUCT_HEADER["cantidad"][0], y_line, linea)
+            draw(PRODUCT_HEADER_BR["cantidad"][0], y_line, linea)
 
         # Totales
-        for campo, (x, y) in TOTALS_COORDS.items():
+        for campo, (x, y) in TOTALS_COORDS_BR.items():
             draw(x, y, totales.get(campo, ""))
 
         if old_font:
@@ -360,50 +377,50 @@ def imprimir_factura_win32ui_tabs(printer_name):
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
 
-        def draw(x_cm, y_cm, texto):
-            x_inv, y_inv = invertir_coordenadas(x_cm, y_cm)
-            dc.TextOut(cm_a_twips(x_inv), -cm_a_twips(y_inv), texto)
+        def draw(x_br, y_br, texto):
+            x_ul, y_ul = convertir_origen_inferior_derecho(x_br, y_br)
+            dc.TextOut(cm_a_twips(x_ul), -cm_a_twips(y_ul), texto)
 
         # Encabezado de la factura en sus coordenadas
         for campo, (x, y) in HEADER_COORDS.items():
             draw(x, y, encabezado.get(campo, ""))
 
         # Encabezado de la tabla de productos en sus coordenadas
-        draw(PRODUCT_HEADER["cantidad"][0], PRODUCT_HEADER["cantidad"][1], "Cantidad")
-        draw(PRODUCT_HEADER["descripcion"][0], PRODUCT_HEADER["descripcion"][1], "Descripci\u00f3n")
+        draw(PRODUCT_HEADER_BR["cantidad"][0], PRODUCT_HEADER_BR["cantidad"][1], "Cantidad")
+        draw(PRODUCT_HEADER_BR["descripcion"][0], PRODUCT_HEADER_BR["descripcion"][1], "Descripci\u00f3n")
         draw(
-            PRODUCT_HEADER["precio_unitario"][0],
-            PRODUCT_HEADER["precio_unitario"][1],
+            PRODUCT_HEADER_BR["precio_unitario"][0],
+            PRODUCT_HEADER_BR["precio_unitario"][1],
             "Precio Unitario",
         )
         draw(
-            PRODUCT_HEADER["ventas_exentas"][0],
-            PRODUCT_HEADER["ventas_exentas"][1],
+            PRODUCT_HEADER_BR["ventas_exentas"][0],
+            PRODUCT_HEADER_BR["ventas_exentas"][1],
             "V. Exentas",
         )
         draw(
-            PRODUCT_HEADER["ventas_no_sujetas"][0],
-            PRODUCT_HEADER["ventas_no_sujetas"][1],
+            PRODUCT_HEADER_BR["ventas_no_sujetas"][0],
+            PRODUCT_HEADER_BR["ventas_no_sujetas"][1],
             "V. No Sujetas",
         )
         draw(
-            PRODUCT_HEADER["ventas_gravadas"][0],
-            PRODUCT_HEADER["ventas_gravadas"][1],
+            PRODUCT_HEADER_BR["ventas_gravadas"][0],
+            PRODUCT_HEADER_BR["ventas_gravadas"][1],
             "V. Gravadas",
         )
 
         # Filas de productos usando tabulaciones para separar texto pero con coordenadas fijas
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
-            y_line = PRODUCT_ROW_START_Y + i * ROW_HEIGHT
-            draw(PRODUCT_HEADER["cantidad"][0], y_line, cant)
-            draw(PRODUCT_HEADER["descripcion"][0], y_line, desc)
-            draw(PRODUCT_HEADER["precio_unitario"][0], y_line, prec)
-            draw(PRODUCT_HEADER["ventas_exentas"][0], y_line, ex)
-            draw(PRODUCT_HEADER["ventas_no_sujetas"][0], y_line, ns)
-            draw(PRODUCT_HEADER["ventas_gravadas"][0], y_line, grav)
+            y_line = PRODUCT_ROW_START_Y_BR - i * ROW_HEIGHT
+            draw(PRODUCT_HEADER_BR["cantidad"][0], y_line, cant)
+            draw(PRODUCT_HEADER_BR["descripcion"][0], y_line, desc)
+            draw(PRODUCT_HEADER_BR["precio_unitario"][0], y_line, prec)
+            draw(PRODUCT_HEADER_BR["ventas_exentas"][0], y_line, ex)
+            draw(PRODUCT_HEADER_BR["ventas_no_sujetas"][0], y_line, ns)
+            draw(PRODUCT_HEADER_BR["ventas_gravadas"][0], y_line, grav)
 
         # Totales en sus coordenadas
-        for campo, (x, y) in TOTALS_COORDS.items():
+        for campo, (x, y) in TOTALS_COORDS_BR.items():
             draw(x, y, totales.get(campo, ""))
 
         if old_font:
@@ -444,9 +461,9 @@ def imprimir_factura_win32ui_crlf(printer_name):
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
 
-        def draw(x_cm, y_cm, texto):
-            x_inv, y_inv = invertir_coordenadas(x_cm, y_cm)
-            dc.TextOut(cm_a_twips(x_inv), -cm_a_twips(y_inv), texto)
+        def draw(x_br, y_br, texto):
+            x_ul, y_ul = convertir_origen_inferior_derecho(x_br, y_br)
+            dc.TextOut(cm_a_twips(x_ul), -cm_a_twips(y_ul), texto)
 
         header_order = [
             "cliente",
@@ -464,26 +481,11 @@ def imprimir_factura_win32ui_crlf(printer_name):
             "fecha_nota_ant",
         ]
 
-        lines = [encabezado.get(campo, "") for campo in header_order]
-        lines.append("")
-        lines.append("Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
-        for cant, desc, prec, ex, ns, grav in productos:
-            lines.append(f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}")
-        lines.append("")
-        lines.append(totales["literal"])
-        lines.append(f"Sumas: {totales['sumas']}")
-        lines.append(f"13% IVA: {totales['iva']}")
-        lines.append(f"Subtotal: {totales['subtotal']}")
-        lines.append(f"IVA retenido: {totales['iva_retenido']}")
-        lines.append(f"Vtas no sujetas: {totales['no_sujetas']}")
-        lines.append(f"Ventas exentas: {totales['ventas_exentas']}")
-        lines.append(f"Venta total: {totales['total']}")
-
-        y = 4.8
+        y = HEADER_COORDS_BR["cliente"][1]
         line_height = 0.6
         for campo in header_order:
             draw(0, y, encabezado.get(campo, ""))
-            y += line_height
+            y -= line_height
 
 
         if old_font:
@@ -491,28 +493,28 @@ def imprimir_factura_win32ui_crlf(printer_name):
         if font:
             eliminar_fuente(font)
 
-        draw(0, 10.10, "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
+        draw(0, PRODUCT_HEADER_BR["cantidad"][1], "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas")
 
-        y_base = 10.70
+        y_base = PRODUCT_ROW_START_Y_BR
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
-            y_line = y_base + i * line_height
+            y_line = y_base - i * line_height
             draw(0, y_line, f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}")
 
-        y = y_base + len(productos) * line_height + line_height
+        y = y_base - len(productos) * line_height - line_height
         draw(0, y, totales["literal"])
-        y += line_height
+        y -= line_height
         draw(0, y, f"Sumas: {totales['sumas']}")
-        y += line_height
+        y -= line_height
         draw(0, y, f"IVA: {totales['iva']}")
-        y += line_height
+        y -= line_height
         draw(0, y, f"Subtotal: {totales['subtotal']}")
-        y += line_height
+        y -= line_height
         draw(0, y, f"IVA retenido: {totales['iva_retenido']}")
-        y += line_height
+        y -= line_height
         draw(0, y, f"Vtas no sujetas: {totales['no_sujetas']}")
-        y += line_height
+        y -= line_height
         draw(0, y, f"Ventas exentas: {totales['ventas_exentas']}")
-        y += line_height
+        y -= line_height
         draw(0, y, f"Venta total: {totales['total']}")
 
 
