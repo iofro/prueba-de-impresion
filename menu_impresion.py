@@ -290,7 +290,7 @@ def imprimir_factura_win32ui(printer_name):
 
 
 def imprimir_factura_win32ui_espacios(printer_name):
-    """Imprime la factura alineando el texto con espacios."""
+    """Imprime la factura alineando solo con espacios sin usar coordenadas."""
     if win32print is None or win32ui is None:
         messagebox.showerror(
             "Error",
@@ -317,26 +317,44 @@ def imprimir_factura_win32ui_espacios(printer_name):
             x_ul, y_ul = convertir_origen_inferior_derecho(x_br, y_br)
             dc.TextOut(cm_a_twips(x_ul), -cm_a_twips(y_ul), texto)
 
-        # Dibujar encabezado en las posiciones indicadas
-        for campo, (x, y) in HEADER_COORDS_BR.items():
-            draw(x, y, encabezado.get(campo, ""))
+        CHAR_WIDTH_CM = 0.21
+        PAGE_COLS = int(PAGE_WIDTH_CM / CHAR_WIDTH_CM) + 1
+        PAGE_LINES = int(PAGE_HEIGHT_CM / ROW_HEIGHT) + 1
 
-        # Encabezado de columnas utilizando espacios
-        draw(
-            PRODUCT_HEADER_BR["cantidad"][0],
-            PRODUCT_HEADER_BR["cantidad"][1],
+        lines = [[" "] * PAGE_COLS for _ in range(PAGE_LINES)]
+
+        def place(x_cm, y_cm, text):
+            col = int(round(x_cm / CHAR_WIDTH_CM))
+            row = int(round(y_cm / ROW_HEIGHT))
+            if 0 <= row < PAGE_LINES:
+                line = lines[row]
+                for i, ch in enumerate(text):
+                    pos = col + i
+                    if 0 <= pos < PAGE_COLS:
+                        line[pos] = ch
+
+        for campo, (x, y) in HEADER_COORDS.items():
+            place(x, y, encabezado.get(campo, ""))
+
+        place(
+            PRODUCT_HEADER["cantidad"][0],
+            PRODUCT_HEADER["cantidad"][1],
             "Cant  Descripción             Precio  Exentas  NoSuj  Gravadas",
         )
 
-        # Filas de productos
         for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
-            y_line = PRODUCT_ROW_START_Y_BR - i * ROW_HEIGHT
+            y = PRODUCT_ROW_START_Y + i * ROW_HEIGHT
             linea = f"{cant:<5}{desc:<23}{prec:>7}    {ex:>4}     {ns:>4}   {grav:>4}"
-            draw(PRODUCT_HEADER_BR["cantidad"][0], y_line, linea)
+            place(PRODUCT_HEADER["cantidad"][0], y, linea)
 
-        # Totales
-        for campo, (x, y) in TOTALS_COORDS_BR.items():
-            draw(x, y, totales.get(campo, ""))
+        for campo, (x, y) in TOTALS_COORDS.items():
+            place(x, y, totales.get(campo, ""))
+
+        for idx, chars in enumerate(lines):
+            texto = "".join(chars).rstrip()
+            if texto:
+                y_br = PAGE_HEIGHT_CM - idx * ROW_HEIGHT
+                draw(0, y_br, texto)
 
         if old_font:
             dc.SelectObject(old_font)
