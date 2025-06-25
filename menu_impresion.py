@@ -45,7 +45,7 @@ HEADER_COORDS = {
     "no_rem": (7.62, 7.50),
     "nit": (11.43, 6.40),
     "orden_no": (12.07, 7.50),
-    "venta_cuenta_de": (11.43, 8.00),
+    "venta_cuenta_de": (10.70, 8.00),
     "fecha_nota_ant": (11.75, 8.50),
 }
 
