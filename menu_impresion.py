@@ -34,13 +34,13 @@ def cm_a_twips(valor_cm: float) -> int:
 
 # Coordenadas est\u00e1ticas para la factura (en cent\u00edmetros)
 HEADER_COORDS = {
-    "cliente": (4.45, 4.80),
-    "direccion": (4.45, 5.40),
-    "fecha": (3.81, 6.40),
-    "giro": (3.81, 6.90),
+    "cliente": (3.55, 4.80),
+    "direccion": (3.55, 5.40),
+    "fecha": (3.37, 6.40),
+    "giro": (3.21, 6.90),
     "fecha_remision": (3.81, 7.50),
     "condicion_pago": (4.45, 8.00),
-    "vendedor": (4.45, 8.50),
+    "vendedor": (3.60, 8.50),
     "nrc": (7.62, 6.40),
     "no_rem": (7.62, 7.50),
     "nit": (11.43, 6.40),
