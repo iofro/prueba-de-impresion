@@ -354,7 +354,7 @@ def imprimir_factura_win32ui_espacios(printer_name):
 
 
 def imprimir_factura_win32ui_tabs(printer_name):
-    """Imprime la factura usando tabulaciones para alinear columnas."""
+    """Imprime la factura utilizando únicamente tabulaciones para alinear las columnas."""
     if win32print is None or win32ui is None:
         messagebox.showerror(
             "Error",
@@ -377,57 +377,63 @@ def imprimir_factura_win32ui_tabs(printer_name):
         dc.StartPage()
         font, old_font = seleccionar_fuente(dc, 12)
 
-        def draw(x_br, y_br, texto):
-            x_ul, y_ul = convertir_origen_inferior_derecho(x_br, y_br)
-            dc.TextOut(cm_a_twips(x_ul), -cm_a_twips(y_ul), texto)
+        def draw(y_br, texto):
+            dc.TextOut(0, -cm_a_twips(y_br), texto)
 
-        # Encabezado de la factura en sus coordenadas de origen
-        # inferior derecho
-        for campo, (x, y) in HEADER_COORDS_BR.items():
-            draw(x, y, encabezado.get(campo, ""))
+        header_order = [
+            "cliente",
+            "direccion",
+            "fecha",
+            "giro",
+            "fecha_remision",
+            "condicion_pago",
+            "vendedor",
+            "nrc",
+            "no_rem",
+            "nit",
+            "orden_no",
+            "venta_cuenta_de",
+            "fecha_nota_ant",
+        ]
 
-        # Encabezado de la tabla de productos en sus coordenadas
-        draw(PRODUCT_HEADER_BR["cantidad"][0], PRODUCT_HEADER_BR["cantidad"][1], "Cantidad")
-        draw(PRODUCT_HEADER_BR["descripcion"][0], PRODUCT_HEADER_BR["descripcion"][1], "Descripci\u00f3n")
-        draw(
-            PRODUCT_HEADER_BR["precio_unitario"][0],
-            PRODUCT_HEADER_BR["precio_unitario"][1],
-            "Precio Unitario",
-        )
-        draw(
-            PRODUCT_HEADER_BR["ventas_exentas"][0],
-            PRODUCT_HEADER_BR["ventas_exentas"][1],
-            "V. Exentas",
-        )
-        draw(
-            PRODUCT_HEADER_BR["ventas_no_sujetas"][0],
-            PRODUCT_HEADER_BR["ventas_no_sujetas"][1],
-            "V. No Sujetas",
-        )
-        draw(
-            PRODUCT_HEADER_BR["ventas_gravadas"][0],
-            PRODUCT_HEADER_BR["ventas_gravadas"][1],
-            "V. Gravadas",
-        )
-
-        # Filas de productos usando tabulaciones para separar texto pero con coordenadas fijas
-        for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
-            y_line = PRODUCT_ROW_START_Y_BR - i * ROW_HEIGHT
-            draw(PRODUCT_HEADER_BR["cantidad"][0], y_line, cant)
-            draw(PRODUCT_HEADER_BR["descripcion"][0], y_line, desc)
-            draw(PRODUCT_HEADER_BR["precio_unitario"][0], y_line, prec)
-            draw(PRODUCT_HEADER_BR["ventas_exentas"][0], y_line, ex)
-            draw(PRODUCT_HEADER_BR["ventas_no_sujetas"][0], y_line, ns)
-            draw(PRODUCT_HEADER_BR["ventas_gravadas"][0], y_line, grav)
-
-        # Totales en sus coordenadas
-        for campo, (x, y) in TOTALS_COORDS_BR.items():
-            draw(x, y, totales.get(campo, ""))
+        y = HEADER_COORDS_BR["cliente"][1]
+        line_height = 0.6
+        for campo in header_order:
+            draw(y, encabezado.get(campo, ""))
+            y -= line_height
 
         if old_font:
             dc.SelectObject(old_font)
         if font:
             eliminar_fuente(font)
+
+        encabezado_productos = (
+            "Cantidad\tDescripción\t\t\tPrecio Unitario\tV. Exentas\tV. No Sujetas\tV. Gravadas"
+        )
+        draw(PRODUCT_HEADER_BR["cantidad"][1], encabezado_productos)
+
+        y_base = PRODUCT_ROW_START_Y_BR
+        for i, (cant, desc, prec, ex, ns, grav) in enumerate(productos):
+            y_line = y_base - i * line_height
+            linea = f"{cant}\t{desc}\t\t\t{prec}\t{ex}\t{ns}\t{grav}"
+            draw(y_line, linea)
+
+        y = y_base - len(productos) * line_height - line_height
+        draw(y, totales["literal"])
+        y -= line_height
+        draw(y, f"Sumas:\t\t\t\t\t\t{totales['sumas']}")
+        y -= line_height
+        draw(y, f"IVA:\t\t\t\t\t\t{totales['iva']}")
+        y -= line_height
+        draw(y, f"Subtotal:\t\t\t\t\t{totales['subtotal']}")
+        y -= line_height
+        draw(y, f"IVA retenido:\t{totales['iva_retenido']}")
+        y -= line_height
+        draw(y, f"Vtas no sujetas:\t{totales['no_sujetas']}")
+        y -= line_height
+        draw(y, f"Ventas exentas:\t{totales['ventas_exentas']}")
+        y -= line_height
+        draw(y, f"Venta total:\t\t{totales['total']}")
 
         dc.EndPage()
         dc.EndDoc()
@@ -436,6 +442,7 @@ def imprimir_factura_win32ui_tabs(printer_name):
         messagebox.showinfo("Éxito", "Factura enviada a la impresora.")
     except Exception as e:
         messagebox.showerror("Error de impresión", str(e))
+
 
 
 def imprimir_factura_win32ui_crlf(printer_name):
