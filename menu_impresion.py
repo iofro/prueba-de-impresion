@@ -564,9 +564,17 @@ def imprimir_factura_programa(printer_name):
     try:
         encabezado, productos, totales = generar_factura_datos()
         hprinter = win32print.OpenPrinter(printer_name)
-        win32print.StartDocPrinter(hprinter, 1, ("Factura programa", None, "RAW"))
+
+        # Activa primero el modo SLIP igual que en los demás métodos
+        win32print.StartDocPrinter(hprinter, 1, ("Modo SLIP", None, "RAW"))
         win32print.StartPagePrinter(hprinter)
         win32print.WritePrinter(hprinter, SLIP4_MODE)
+        win32print.EndPagePrinter(hprinter)
+        win32print.EndDocPrinter(hprinter)
+
+        # Ahora envía la factura en un documento aparte
+        win32print.StartDocPrinter(hprinter, 1, ("Factura programa", None, "RAW"))
+        win32print.StartPagePrinter(hprinter)
 
         lineas = []
         lineas.append(f"Cliente: {encabezado['cliente']}\r\n")
