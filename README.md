@@ -34,6 +34,7 @@ Los métodos disponibles incluyen únicamente variantes de `win32ui`:
 - Alineado por espacios
 - Alineado con tabulaciones
 - Alineado con CRLF
+- Impresión de programa
 
 ## Fuente de impresión
 
