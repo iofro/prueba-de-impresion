@@ -381,12 +381,11 @@ def imprimir_factura_win32ui_tabs(printer_name):
         return
     try:
         encabezado, productos, totales = generar_factura_datos()
+
+        # Asegura que el papel se coloque correctamente en la bandeja de formularios
+        activar_modo_slip(printer_name)
+
         hprinter = win32print.OpenPrinter(printer_name)
-        win32print.StartDocPrinter(hprinter, 1, ("Factura win32ui tabs", None, "RAW"))
-        win32print.StartPagePrinter(hprinter)
-        win32print.WritePrinter(hprinter, SLIP4_MODE)
-        win32print.EndPagePrinter(hprinter)
-        win32print.EndDocPrinter(hprinter)
 
         dc = win32ui.CreateDC()
         dc.CreatePrinterDC(printer_name)
@@ -414,16 +413,29 @@ def imprimir_factura_win32ui_tabs(printer_name):
             "fecha_nota_ant",
         ]
 
+        header_labels = {
+            "cliente": "Cliente",
+            "direccion": "Direcci\u00f3n",
+            "fecha": "Fecha",
+            "giro": "Giro",
+            "fecha_remision": "Fecha remisi\u00f3n",
+            "condicion_pago": "Condici\u00f3n de pago",
+            "vendedor": "Vendedor",
+            "nrc": "NRC",
+            "no_rem": "No. remisi\u00f3n",
+            "nit": "NIT",
+            "orden_no": "Orden No.",
+            "venta_cuenta_de": "Venta a cuenta de",
+            "fecha_nota_ant": "Fecha nota ant.",
+        }
+
         y = HEADER_COORDS_BR["cliente"][1]
         line_height = 0.6
         for campo in header_order:
-            draw(y, encabezado.get(campo, ""))
+            etiqueta = header_labels.get(campo, campo)
+            valor = encabezado.get(campo, "")
+            draw(y, f"{etiqueta}:\t{valor}")
             y -= line_height
-
-        if old_font:
-            dc.SelectObject(old_font)
-        if font:
-            eliminar_fuente(font)
 
         encabezado_productos = (
             "Cantidad\tDescripción\t\t\tPrecio Unitario\tV. Exentas\tV. No Sujetas\tV. Gravadas"
@@ -452,6 +464,11 @@ def imprimir_factura_win32ui_tabs(printer_name):
         draw(y, f"Ventas exentas:\t{totales['ventas_exentas']}")
         y -= line_height
         draw(y, f"Venta total:\t\t{totales['total']}")
+
+        if old_font:
+            dc.SelectObject(old_font)
+        if font:
+            eliminar_fuente(font)
 
         dc.EndPage()
         dc.EndDoc()
